@@ -1,4 +1,4 @@
-import { Box, Divider, VStack, Image, Button } from "@chakra-ui/react";
+import { Box, Divider, VStack, Image } from "@chakra-ui/react";
 import SideBarBtns from "./SideBarBtns";
 import { sidebarButtons } from "./sidebarConfig";
 
@@ -24,21 +24,21 @@ export default function SideBar() {
       display="flex"
       flexDirection="column"
       alignItems="center"
-      py={"5px"}
+      p={"10px 12px"}
       zIndex={100}
     >
-      <VStack h="100%" justify="space-between" px="12px">
+      <VStack h="100%" justify="space-between">
         {/* Seção superior - botões principais */}
         <VStack spacing={"0px"} justify={"flex-start"}>
           {mainButtons.map((button) => (
-            <Box key={button.id}>
+            <Box key={button.id} w="full">
               <SideBarBtns
                 icon={button.icon}
                 label={button.label}
               />
               {button.id === "community" && (
                 <>
-                  <Divider w="full" maxW="40px" h="1px" bg="#0000001A" my="10px" />
+                  <Divider w="full" maxW="40px" h="1px" bg="#0000001A" my="10px" mx="auto" />
                   <Box
                     as="button"
                     w="40px"
@@ -57,6 +57,7 @@ export default function SideBar() {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
+                    mx="auto"
                   >
                     <Image
                       src="/img/W2MDyeo0zkf.png"

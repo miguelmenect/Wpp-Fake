@@ -4,7 +4,7 @@ import {
   NewsletterIcon,
   CommunityIcon,
   SettingsIcon
-} from "../../Icons";
+} from "../../utils/Icons";
 
 export const sidebarButtons = [
   {
