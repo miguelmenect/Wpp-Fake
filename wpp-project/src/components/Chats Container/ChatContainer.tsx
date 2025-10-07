@@ -1,12 +1,13 @@
 import { Box, Button, Divider, Flex, HStack, Text, VStack } from "@chakra-ui/react";
 import { MoreOptIcon, NewChatIcon, WhatsAppLogo } from "../../utils/Icons";
 import { useEffect, useRef, useState } from "react";
+import DropdownOpt from "./DropdownOpt";
 
 export default function ChatContainer() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const menuOptions = [
+  const chatOptions = [
     { icon: "group_add", label: "Novo grupo" },
     { icon: "star", label: "Mensagens favoritas" },
     { icon: "check_box", label: "Selecionar conversas" },
@@ -77,70 +78,11 @@ export default function ChatContainer() {
               <MoreOptIcon />
             </Button>
             {/*dropdown menu */}
-            {isMenuOpen && (
-              <Box
-                ref={dropdownRef}
-                top="52px"
-                left="270px"
-                position="absolute"
-                w="223px"
-                minH="189px"
-                bg="#FFF"
-                borderRadius="16px"
-                boxShadow="0 2px 8px rgba(11, 20, 26, 0.26)"
-                p="20px"
-                zIndex={10}
-              >
-                {/* conteudo do menu */}
-                <VStack align={"center"} justify={"flex-start"} spacing={0}>
-                  {menuOptions.map((item, index) => {
-                    const isPenult = index === menuOptions.length - 2;
-                    return (
-                      <Box key={index}>
-                        <Button
-                          variant="ghost"
-                          justifyContent="flex-start"
-                          w="full"
-                          px={"7px"}
-                          borderRadius="8px"
-                          minH="40px"
-                          minW="203px"
-                          role="group"
-                          _hover={{ bg: item.label !== "Desconectar" ? "#F6F5F4" : "#F9EBEF" }}
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          <HStack>
-                            <Text
-                              as={"span"}
-                              className="material-symbols-outlined"
-                              fontSize={"24px"}
-                              color={"#626262"}
-                              _groupHover={{ color: item.label === "Desconectar" ? "#B80531" : "#626262" }}
-                              lineHeight={"16px"}
-                            >
-                              {item.icon}
-                            </Text>
-                            <Text
-                              color={"#626262"}
-                              fontSize={"16px"}
-                              fontWeight={400}
-                              lineHeight={"16px"}
-                              fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
-                              _groupHover={{ color: item.label === "Desconectar" ? "#B80531" : "#626262" }}
-                            >
-                              {item.label}
-                            </Text>
-                          </HStack>
-                        </Button>
-                        {isPenult && (
-                          <Divider w="full" h="1px" bg="#E5E5E5" my="5px" />
-                        )}
-                      </Box>
-                    );
-                  })}
-                </VStack>
-              </Box>
-            )}
+            <DropdownOpt
+              isOpen={isMenuOpen}
+              menuOptions={chatOptions}
+              onClose={() => setIsMenuOpen(false)}
+            />
           </Flex>
         </HStack>
 
