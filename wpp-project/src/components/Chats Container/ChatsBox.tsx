@@ -2,6 +2,7 @@ import { Box, HStack, Image, VStack, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { chatsData } from "../../utils/chatsData";
 import DropdownOpt from "./DropdownOpt";
+import { useChat } from "../../context/ChatContext";
 
 //formata mensagens de acordo com seu tempo
 const formatTimestamp = (date: Date): string => {
@@ -30,11 +31,17 @@ const truncateMessage = (text: string, maxLength: number) => {
   return text.slice(0, maxLength) + "...";
 };
 
-export default function Chats() {
+
+interface ChatsProps {
+  showArchived: boolean;
+}
+
+export default function Chats({ showArchived }: ChatsProps) {
   //armazena id do chat que esta com hover
   const [hoveredChatId, setHoveredChatId] = useState<string | null>(null);
   //armazena id do chat que tem o dropdown aberto
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const { selectedChat, setSelectedChat } = useChat();
 
   //ordena os containers de chat baseada na mensagem mais recente
   const sortedChats = useMemo(() => {
@@ -58,16 +65,32 @@ export default function Chats() {
     { icon: "delete", label: "Apagar conversa" },
   ];
 
-  // Função para abrir/fechar dropdown
+  // função para abrir/fechar dropdown
   const handleDropdownToggle = (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Impede que o click propague para o Box do chat
+    e.stopPropagation(); // impede que o click propague para o Box do chat
     setOpenDropdownId(openDropdownId === chatId ? null : chatId);
   };
 
+  //função que define qual chat de contato foi clicado
+  const handleChatClick = (chat: any) => {
+    setSelectedChat(chat);
+  };
+
+  const filteredChats = useMemo(() => {
+    if (showArchived) {
+      // Mostra apenas o chat de id 7 (arquivado)
+      return sortedChats.filter(chat => chat.id === "7");
+    } else {
+      // Mostra apenas os chats de id 1 a 6
+      return sortedChats.filter(chat => chat.id !== "7");
+    }
+  }, [sortedChats, showArchived]);
+
   return (
     <VStack w="full" spacing="0px" align="flex-start">
-      {sortedChats.map((chat) => {
+      {filteredChats.map((chat) => {
         const lastMessage = chat.messages[chat.messages.length - 1];
+        const isSelected = selectedChat?.id === chat.id;
         return (
           <Box
             key={chat.id}
@@ -77,11 +100,12 @@ export default function Chats() {
             position="relative"
             alignItems="center"
             cursor={"pointer"}
-            bg="transparent"
+            bg={isSelected ? "#F7F5F3" : "transparent"}
             borderRadius={"12px"}
             _hover={{ bg: "#F7F5F3" }}
             onMouseEnter={() => setHoveredChatId(chat.id)}
             onMouseLeave={() => setHoveredChatId(null)}
+            onClick={() => handleChatClick(chat)}
           >
             <HStack w="full" spacing="12px" justify="space-between" p="0px 15px 0px 10px" align="center">
               {/* imagem de perfil + nome e mensagem */}
@@ -93,7 +117,7 @@ export default function Chats() {
                 borderRadius="full"
                 objectFit="cover"
               />
-              <VStack align="flex-start" spacing="2px" flex="1" overflow="hidden">
+              <VStack align="flex-start" spacing="2px" flex="1">
                 <Text
                   fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
                   fontSize="16px"
@@ -131,7 +155,7 @@ export default function Chats() {
                 >
                   {formatTimestamp(lastMessage.timestamp)}
                 </Text>
-                <Box h="16px" overflow="hidden" position="relative" onClick={(e) => handleDropdownToggle(chat.id, e)}>
+                <Box h="16px" position="relative" onClick={(e) => handleDropdownToggle(chat.id, e)}>
                   <Text as="span"
                     className="material-symbols-outlined"
                     fontSize="16px"

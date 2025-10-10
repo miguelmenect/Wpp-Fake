@@ -110,7 +110,7 @@ export const chatsData: Chat[] = [
       {
         id: "3",
         sender: "user",
-        text: "Obrigado Filho!",
+        text: "Obrigada Filho!",
         timestamp: new Date(now.getTime() - 198 * 60 * 1000),
       },
     ],
@@ -144,6 +144,25 @@ export const chatsData: Chat[] = [
     id: "6",
     name: "Rafael Viagem",
     avatar: "/profile pics/6.jpg",
+    messages: [
+      {
+        id: "1",
+        sender: "contact",
+        text: "Fala irmão, beleza?!",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+      {
+        id: "2",
+        sender: "contact",
+        text: "Tudo certo para esse próximo fim de semana?",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+    ],
+  },
+  {
+    id: "7",
+    name: "Doutor Márcio",
+    avatar: "/profile pics/7.jpg",
     messages: [
       {
         id: "1",

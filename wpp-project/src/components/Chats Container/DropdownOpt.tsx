@@ -61,10 +61,10 @@ export default function DropdownOpt({ isOpen, onClose, linePosition = 1, menuOpt
   return (
     <Box
       ref={dropdownRef}
-      // Posicionamento dinâmico: para cima ou para baixo
+      // posicionamento dinâmico: para cima ou para baixo
       top={openUpwards ? "auto" : "52px"}
       bottom={openUpwards ? "52px" : "auto"}
-      left="333.797px"
+      left={openUpwards ? "auto" : "403.797px"}
       position="absolute"
       w="223px"
       minH="189px"
@@ -72,7 +72,7 @@ export default function DropdownOpt({ isOpen, onClose, linePosition = 1, menuOpt
       borderRadius="16px"
       boxShadow="0 2px 8px rgba(11, 20, 26, 0.26)"
       p="10px 20px 10px 20px"
-      zIndex={10}
+      zIndex={100}
     >
       <VStack align={"center"} justify={"flex-start"} spacing={0}>
         {menuOptions.map((item, index) => {
