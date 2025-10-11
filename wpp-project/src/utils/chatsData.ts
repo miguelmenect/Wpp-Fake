@@ -18,7 +18,7 @@ export const chatsData: Chat[] = [
   {
     id: "1",
     name: "Carlos Aarav",
-    avatar: "/profile pics/1.jpg",
+    avatar: "/img/profile pics/1.jpg",
     messages: [
       {
         id: "1",
@@ -43,7 +43,7 @@ export const chatsData: Chat[] = [
   {
     id: "2",
     name: "Clara Gestora",
-    avatar: "/profile pics/3.jpg",
+    avatar: "/img/profile pics/3.jpg",
     messages: [
       {
         id: "1",
@@ -68,7 +68,7 @@ export const chatsData: Chat[] = [
   {
     id: "3",
     name: "Daniel Youssef",
-    avatar: "/profile pics/2.jpg",
+    avatar: "/img/profile pics/2.jpg",
     messages: [
       {
         id: "1",
@@ -93,7 +93,7 @@ export const chatsData: Chat[] = [
   {
     id: "4",
     name: "Mãe",
-    avatar: "/profile pics/4.jpg",
+    avatar: "/img/profile pics/4.jpg",
     messages: [
       {
         id: "1",
@@ -118,7 +118,7 @@ export const chatsData: Chat[] = [
   {
     id: "5",
     name: "Dr. Thiago Tamagushi",
-    avatar: "/profile pics/5.jpg",
+    avatar: "/img/profile pics/5.jpg",
     messages: [
       {
         id: "1",
@@ -143,7 +143,7 @@ export const chatsData: Chat[] = [
   {
     id: "6",
     name: "Rafael Viagem",
-    avatar: "/profile pics/6.jpg",
+    avatar: "/img/profile pics/6.jpg",
     messages: [
       {
         id: "1",
@@ -162,7 +162,7 @@ export const chatsData: Chat[] = [
   {
     id: "7",
     name: "Doutor Márcio",
-    avatar: "/profile pics/7.jpg",
+    avatar: "/img/profile pics/7.jpg",
     messages: [
       {
         id: "1",
