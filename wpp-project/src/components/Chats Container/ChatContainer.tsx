@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import DropdownOpt from "./DropdownOpt";
 import FilterBtns from "./FilterBtns";
 import Chats from "./ChatsBox";
+import ReactionBar from "../Contacts Chat Area/ReactionBar";
 
 export default function ChatContainer() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  //condição para exibir os contatos arquivados
   const [showArchived, setShowArchived] = useState(false);
 
   const chatOptions = [
@@ -21,7 +21,7 @@ export default function ChatContainer() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(!isMenuOpen);
+        setIsMenuOpen(false);
       }
     };
 
@@ -44,15 +44,66 @@ export default function ChatContainer() {
       border="1px solid #DEDCDA"
       flexShrink={0}
     >
-      <VStack p="10px 20px" >
-        {!showArchived && (
-          <VStack w="full" align={"flex-start"} spacing={"15px"}>
+      <VStack py="10px" spacing="15px">
+        {showArchived ? (
+          // cabeçalho dos arquivados
+          <VStack w="full" align="flex-start" spacing="15px" px="10px">
+            <HStack justify="flex-start" w="full" spacing="15px">
+              <Button
+                bg="transparent"
+                boxSize="40px"
+                minW="40px"
+                borderRadius="full"
+                p={0}
+                _hover={{ bg: "#F7F5F3" }}
+                _focus={{
+                  bg: "#F7F5F3",
+                  boxShadow: "none",
+                  outline: "none"
+                }}
+                onClick={() => setShowArchived(false)}
+              >
+                <Text
+                  as="span"
+                  className="material-symbols-outlined"
+                  fontSize="24px"
+                  color="black"
+                >
+                  arrow_back
+                </Text>
+              </Button>
+              <Text
+                color="#0A0A0A"
+                fontWeight={400}
+                fontSize="15px"
+              >
+                Arquivadas
+              </Text>
+            </HStack>
+            <Flex w="full" borderBottom="1px solid #d8d8d8" px="10px" pb="20px">
+              <Text
+                fontSize="14px"
+                lineHeight="20px"
+                fontWeight={400}
+                color="#00000099"
+              >
+                Essas conversas permanecem arquivadas quando você recebe novas mensagens.
+                Para mudar essa configuração, abra o WhatsApp no seu celular e acesse{" "}
+                <Text as="span" fontWeight={700}>
+                  Configurações <br /> {'>'} Conversas
+                </Text>
+              </Text>
+            </Flex>
+          </VStack>
+        ) : (
+          // cabeçalho normal
+          <VStack w="full" align="flex-start" spacing="15px" px="20px">
             <HStack justify="space-between" w="full">
               <WhatsAppLogo />
-              <Flex gap={"10px"}>
+              <Flex gap="10px" position="relative" ref={dropdownRef}>
                 <Button
                   bg="transparent"
-                  borderRadius={"50%"}
+                  borderRadius="50%"
                   w="40px"
                   h="40px"
                   p={0}
@@ -67,7 +118,7 @@ export default function ChatContainer() {
                 </Button>
                 <Button
                   bg="transparent"
-                  borderRadius={"50%"}
+                  borderRadius="50%"
                   w="40px"
                   h="40px"
                   p={0}
@@ -81,7 +132,7 @@ export default function ChatContainer() {
                 >
                   <MoreOptIcon />
                 </Button>
-                {/*dropdown menu */}
+                {/* dropdown menu */}
                 <DropdownOpt
                   isOpen={isMenuOpen}
                   menuOptions={chatOptions}
@@ -99,11 +150,11 @@ export default function ChatContainer() {
             >
               <InputLeftElement h="full" pointerEvents="none">
                 <Text
-                  as={"span"}
+                  as="span"
                   className="material-symbols-outlined"
-                  fontSize={"20px"}
-                  color={"#666666"}
-                  lineHeight={"16px"}
+                  fontSize="20px"
+                  color="#666666"
+                  lineHeight="16px"
                 >
                   search
                 </Text>
@@ -112,7 +163,7 @@ export default function ChatContainer() {
                 placeholder="Pesquisar ou começar uma nova conversa"
                 fontSize="15px"
                 color="black"
-                outline={"none"}
+                outline="none"
                 border="1px solid transparent"
                 _hover={{
                   border: "1px solid #C5C4C3",
@@ -130,37 +181,54 @@ export default function ChatContainer() {
             <FilterBtns />
           </VStack>
         )}
-        <VStack>
-          {/*chats de conversa */}
-          <Button w="full" bg="transparent" _hover={{ bg: "transparent" }} onClick={() => setShowArchived(!showArchived)}>
-            <HStack align={"center"} w="full" spacing="27px" >
-              <Text
-                as={"span"}
-                className="material-symbols-outlined"
-                fontSize={"24px"}
-                color={"#666666"}
-              >
-                {showArchived ? 'arrow_back' : 'archive'}
-              </Text>
-              <Text
-                color="black"
-                fontWeight={400}
-                fontSize="16px"
-              >
-                Arquivadas
-              </Text>
-            </HStack>
-            {!showArchived && (<Text
-              fontSize="12px"
-              fontWeight={545}
-              color="#1DAA61"
+
+        {/* lista de contatos */}
+        <VStack w="full" spacing={0}>
+          {/* botão de arquivados, só aparece quando não está nos arquivados */}
+          {!showArchived && (
+            <Flex
+              w="full"
+              minH="45px"
+              px="44px"
+              bg="transparent"
+              _hover={{ bg: "transparent" }}
+              //border="1px solid"
+              cursor="pointer"
+              onClick={() => setShowArchived(true)}
+              align="center"
+              justify="space-between"
             >
-              1
-            </Text>)}
-          </Button>
+              <HStack spacing="25px" align="center" >
+                <Text
+                  as="span"
+                  className="material-symbols-outlined"
+                  fontSize="24px"
+                  color="#666666"
+                >
+                  archive
+                </Text>
+                <Text
+                  color="black"
+                  fontWeight={400}
+                  fontSize="16px"
+                >
+                  Arquivadas
+                </Text>
+              </HStack>
+              <Text
+                fontSize="12px"
+                fontWeight={600}
+                color="#1DAA61"
+              >
+                2
+              </Text>
+            </Flex>
+          )}
+
+          {/* lista de conversas */}
           <Chats showArchived={showArchived} />
         </VStack>
       </VStack>
-    </Box >
-  )
+    </Box>
+  );
 }

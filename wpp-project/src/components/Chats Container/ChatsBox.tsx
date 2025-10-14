@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { chatsData } from "../../utils/chatsData";
 import DropdownOpt from "./DropdownOpt";
 import { useChat } from "../../context/ChatContext";
+import { DoubleCheck } from "../../utils/Icons";
 
 //formata mensagens de acordo com seu tempo
 const formatTimestamp = (date: Date): string => {
@@ -87,7 +88,7 @@ export default function Chats({ showArchived }: ChatsProps) {
   }, [sortedChats, showArchived]);
 
   return (
-    <VStack w="full" spacing="0px" align="flex-start">
+    <VStack w="full" spacing="0px" align="flex-start" px="10px">
       {filteredChats.map((chat) => {
         const lastMessage = chat.messages[chat.messages.length - 1];
         const isSelected = selectedChat?.id === chat.id;
@@ -127,17 +128,22 @@ export default function Chats({ showArchived }: ChatsProps) {
                 >
                   {chat.name}
                 </Text>
-                <Text
-                  fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
-                  fontSize="14px"
-                  fontWeight="400"
-                  color="#666666"
-                  noOfLines={1}
-                  textAlign="start"
-                >
-                  {/*max 46 caracteres e então resume a mensagem */}
-                  {truncateMessage(lastMessage.text, 46)}
-                </Text>
+                <HStack w="full" spacing="6px">
+                  {lastMessage.sender === "user" && (
+                    <DoubleCheck />
+                  )}
+                  <Text
+                    fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
+                    fontSize="14px"
+                    fontWeight="400"
+                    color="#666666"
+                    noOfLines={1}
+                    textAlign="start"
+                  >
+                    {/*max 46 caracteres e então resume a mensagem */}
+                    {truncateMessage(lastMessage.text, 46)}
+                  </Text>
+                </HStack>
               </VStack>
               {/* hora + icone de dropdonw */}
               <VStack

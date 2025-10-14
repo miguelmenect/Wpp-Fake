@@ -14,6 +14,28 @@ export interface Chat {
 
 const now = new Date();
 
+function getNextAvailableDate(): string {
+  const future = new Date(now);
+  future.setDate(future.getDate() + 2);
+
+  const dayOfWeek = future.getDay(); // 0 = domingo, 6 = sábado
+
+  // Se cair no sábado (6), pula para segunda (+2)
+  // Se cair no domingo (0), pula para segunda (+1)
+  if (dayOfWeek === 6) {
+    future.setDate(future.getDate() + 2);
+  } else if (dayOfWeek === 0) {
+    future.setDate(future.getDate() + 1);
+  }
+
+  // Formata como dia/mês
+  const day = future.getDate().toString().padStart(2, "0");
+  const month = (future.getMonth() + 1).toString().padStart(2, "0");
+  return `${day}/${month}`;
+}
+
+const nextDate = getNextAvailableDate();
+
 export const chatsData: Chat[] = [
   {
     id: "1",
@@ -37,6 +59,12 @@ export const chatsData: Chat[] = [
         sender: "contact",
         text: "Tudo bem! Como andam as demandas do mês?",
         timestamp: new Date(now.getTime() - 93 * 60 * 1000),
+      },
+      {
+        id: "4",
+        sender: "user",
+        text: "Todas Finalizadas 👊🏼",
+        timestamp: new Date(now.getTime() - 96 * 60 * 1000),
       },
     ],
   },
@@ -97,19 +125,19 @@ export const chatsData: Chat[] = [
     messages: [
       {
         id: "1",
-        sender: "user",
+        sender: "contact",
         text: "Oi filho, vai levar pipoca no pet?",
         timestamp: new Date(now.getTime() - 3 * 60 * 60 * 1000),
       },
       {
         id: "2",
-        sender: "contact",
+        sender: "user",
         text: "Claro, vou levar hoje no fim da tarde",
         timestamp: new Date(now.getTime() - 4 * 60 * 60 * 1000),
       },
       {
         id: "3",
-        sender: "user",
+        sender: "contact",
         text: "Obrigada Filho!",
         timestamp: new Date(now.getTime() - 198 * 60 * 1000),
       },
@@ -129,7 +157,7 @@ export const chatsData: Chat[] = [
       {
         id: "2",
         sender: "user",
-        text: "Perfeitamente DR Thiago",
+        text: "Perfeitamente Dr Thiago",
         timestamp: new Date(now.getTime() - 5 * 60 * 60 * 1000),
       },
       {
@@ -167,15 +195,27 @@ export const chatsData: Chat[] = [
       {
         id: "1",
         sender: "contact",
-        text: "Fala irmão, beleza?!",
+        text: "Boa tarde! Aqui é o Doutor Márcio",
         timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
       },
       {
         id: "2",
-        sender: "contact",
-        text: "Tudo certo para esse próximo fim de semana?",
+        sender: "user",
+        text: "Boa Tarde Doutor!",
         timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
       },
+      {
+        id: "3",
+        sender: "contact",
+        text: `Temos hórario para uma consulta no próximo dia ${nextDate} as 09:30`,
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+      {
+        id: "4",
+        sender: "contact",
+        text: "Podemos agendar?",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      }
     ],
   },
 ];

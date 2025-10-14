@@ -1,101 +1,18 @@
-import { Box, Button, Flex, HStack, Image, Input, InputGroup, InputRightElement, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Image, Input, InputGroup, InputRightElement, Text } from "@chakra-ui/react";
 import { useChat } from "../../context/ChatContext";
 import { useState } from "react";
 import { ExpressionsIcon } from "../../utils/Icons";
+import Messages from "./TextMessages";
 
 export default function ContactsChat() {
   const { selectedChat } = useChat();
   //valor do que foi escrito no input
   const [messageInput, setMessageInput] = useState("");
-  const [isMicHovered, setIsMicHovered] = useState(false)
+  const [isMicHovered, setIsMicHovered] = useState(false);
 
   const headerIcons = [
     "videocam", "search", "more_vert"
   ];
-
-  //formatando hora
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (!selectedChat) {
-    return (
-      <Box
-        bg="#F7F5F3"
-        flex="1"
-        h="100vh"
-        position="relative"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <VStack
-          h="full"
-          justify={"center"}
-        >
-          <Image
-            h="228px"
-            w="228px"
-            src="/img/Nova/banner_wpp.png"
-            p={0}
-          />
-          <VStack
-            spacing="12px"
-            mb="20px"
-          >
-            <Text fontSize="36px" color="#0A0A0A" lineHeight="36px" fontWeight={200}>
-              Baixar o WhatsApp para Windows
-            </Text>
-            <Text fontSize="16px" color="#0A0A0A" lineHeight="16px" textAlign="center">
-              Baixe o novo app para Windows para fazer ligações, usar o compartilhamento <br />
-              de tela e ter uma experiência de uso mais rápida.
-            </Text>
-          </VStack>
-          <Button
-            w="89px"
-            h="38px"
-            borderRadius="full"
-            bg="#1DAA61"
-            _hover={{ bg: "#1DAA61" }}
-          >
-            <Text
-              color="white"
-              fontWeight={500}
-              fontSize={"14px"}
-              line-height="16.0006px"
-            >
-              Baixar
-            </Text>
-          </Button>
-          <HStack
-            bottom="40px"
-            position={"absolute"}
-            justify="center"
-            spacing="5px"
-          >
-            <Text
-              as="span"
-              className="material-symbols-rounded"
-              fontSize="20px"
-              color="#00000099"
-            >
-              lock
-            </Text>
-            <Text
-              fontSize={"14px"}
-              lineHeight={"20px"}
-              color="#00000099"
-            >
-              Suas mensagens pessoais são protegidas com a criptografia de ponta a ponta.
-            </Text>
-          </HStack>
-        </VStack>
-      </Box>
-    );
-  }
 
   return (
     <Box
@@ -172,43 +89,9 @@ export default function ContactsChat() {
           ))}
         </HStack>
       </Flex>
-      <Box
-        p="20px 60px"
-        overflowY={"auto"}
-        h="calc(100vh - 64px - 76px)"
-      >
-        <VStack spacing="8px" align="stretch">
-          {selectedChat.messages.map((message) => (
-            <Flex
-              key={message.id}
-              justify={message.sender === "user" ? "flex-end" : "flex-start"}
-            >
-              <Flex
-                maxW="65%"
-                bg={message.sender === "user" ? "#D9FDD3" : "#FFFFFF"}
-                borderRadius="8px"
-                minH="33px"
-                justify="center"
-                alignItems="center"
-                boxShadow="0 1px 0.5px rgba(0, 0, 0, 0.13)"
-                position="relative"
-              >
-                <Text
-                  color="#111B21"
-                  fontSize="14.2px"
-                  lineHeight="19px"
-                  whiteSpace="pre-wrap"
-                  wordBreak="break-word"
-                  m="0px 7px 0px 9px"
-                >
-                  {message.text}
-                </Text>
-
-              </Flex>
-            </Flex>
-          ))}
-        </VStack>
-      </Box>
+      {/** componente com balãozinhos das mensagens */}
+      < Messages />
+      {/** input de texto */}
       <InputGroup
         position="absolute"
         bottom="12px"
@@ -261,7 +144,7 @@ export default function ContactsChat() {
           border="none"
           color="black"
           outline={"none"}
-          pl="100px"
+          pl="91px"
           pr="10px"
           _hover={{ border: "none" }}
           _focus={{
