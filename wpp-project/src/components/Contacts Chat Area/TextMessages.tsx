@@ -1,4 +1,4 @@
-import { Box, VStack, Flex, HStack, Image, Button, Text } from "@chakra-ui/react";
+import { Box, VStack, Flex, HStack, Image, Button, Text, Portal } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "../../context/ChatContext";
 import { DoubleCheck } from "../../utils/Icons";
@@ -8,6 +8,7 @@ import { AnimatePresence } from "framer-motion";
 export default function Messages() {
   const [isTextHovered, setIsTextHovered] = useState<string | null>(null);
   const [reactionBarOpen, setReactionBarOpen] = useState<string | null>(null);
+  const [reactionBarPos, setReactionBarPos] = useState({ top: 0, left: 0, right: 0 });
   const reactionBarRef = useRef<HTMLDivElement | null>(null);
   const { selectedChat } = useChat();
 
@@ -18,8 +19,19 @@ export default function Messages() {
     });
   };
   //abre reactionbar
-  const toggleReactionBar = (messageId: string) => {
-    setReactionBarOpen(prev => (prev === messageId ? null : messageId));
+  const toggleReactionBar = (messageId: string, buttonElement: HTMLButtonElement, sender: "user" | "contact") => {
+    if (reactionBarOpen === messageId) {
+      setReactionBarOpen(null);
+      return;
+    }
+
+    const rect = buttonElement.getBoundingClientRect();
+    setReactionBarPos({
+      top: rect.top - 67, // 67px acima do botão
+      left: sender === "user" ? rect.right + 0 : 535, // 535px à direita do botão (user)
+      right: sender === "contact" ? window.innerWidth - rect.left + 0 : 351, // 351px à esquerda do botão (contact)
+    });
+    setReactionBarOpen(messageId);
   };
 
   //fecha reactionbar
@@ -38,8 +50,7 @@ export default function Messages() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [reactionBarOpen]);
 
-
-  const ReactionBtn = ({ messageId }: { messageId: string }) => (
+  const ReactionBtn = ({ messageId, sender }: { messageId: string; sender: "user" | "contact" }) => (
     <Button
       boxSize="26px"
       minW="26px"
@@ -53,7 +64,9 @@ export default function Messages() {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      onClick={() => toggleReactionBar(messageId)}
+      onClick={(e) => {
+        toggleReactionBar(messageId, e.currentTarget, sender);
+      }}
     >
       <Text
         as="span"
@@ -85,7 +98,7 @@ export default function Messages() {
           <Image
             h="228px"
             w="228px"
-            src="/img/Nova/banner_wpp.png"
+            src="/img/various/banner_wpp.png"
             p={0}
           />
           <VStack
@@ -145,9 +158,12 @@ export default function Messages() {
 
   return (
     <Box
-      p="20px 57px 20px 62px"
+      p={selectedChat.isGroup ? "20px 57px 20px 36px" : "20px 57px 20px 62px"}
       overflowY={"auto"}
       h="calc(100vh - 64px - 76px)"
+      display="flex"
+      flexDirection="column"
+      justifyContent="flex-end"
     >
       {/**chat de conversa selecionado */}
       <VStack
@@ -156,22 +172,42 @@ export default function Messages() {
       >
         {selectedChat.messages.map((message, index) => {
           const prevMessage = selectedChat.messages[index - 1];
-          const nextMessage = selectedChat.messages[index + 1];
-          const isFirstOfSender = !prevMessage || prevMessage.sender !== message.sender;
-          const isLastOfSender = !nextMessage || nextMessage.sender !== message.sender;
+          //verifica se existe alguma mensagem antes da mensagem atual, se não houver
+          //é o primeiro balão de mensagem
+          const isFirstOfSender = !prevMessage ||
+            //ou se o remetente da mensagem anterior é diferente do remetente atual
+            prevMessage.sender !== message.sender ||
+            //ou, se for um grupo, verifica se o nome do contato 
+            //anterior é diferente (ou seja, mudou o remetente dentro do grupo)
+            (selectedChat.isGroup &&
+              message.sender === "contact" &&
+              prevMessage.senderName !== message.senderName);
+
+          //verifica se a mensagem atual é a última de um mesmo remetente
+          //se sim então significa que é a última mensagem
+
           return (
             <Flex
               key={message.id}
               justify={message.sender === "user" ? "flex-end" : "flex-start"}
               onMouseEnter={() => setIsTextHovered(message.id)}
               onMouseLeave={() => setIsTextHovered(null)}
-              mb={isLastOfSender ? "12px" : "1px"}
+              mb="1px"
               position="relative"
             >
               <HStack spacing="5px">
+                {selectedChat.isGroup && message.sender === "contact" && (
+                  <Image
+                    boxSize="28px"
+                    src={message.senderAvatar}
+                    alt={message.senderName}
+                    borderRadius={"full"}
+                    mb="10px"
+                  />
+                )}
                 <Box>
                   {isTextHovered === message.id && message.sender === "user" && (
-                    <ReactionBtn messageId={message.id} />
+                    <ReactionBtn messageId={message.id} sender={message.sender} />
                   )}
                 </Box>
                 <Flex
@@ -244,7 +280,7 @@ export default function Messages() {
                 </Flex>
                 <Box>
                   {isTextHovered === message.id && message.sender === "contact" && (
-                    <ReactionBtn messageId={message.id} />
+                    <ReactionBtn messageId={message.id} sender={message.sender} />
                   )}
                 </Box>
               </HStack>
@@ -252,10 +288,10 @@ export default function Messages() {
                 {reactionBarOpen === message.id && (
                   <Box
                     ref={reactionBarRef}
-                    position="absolute"
-                    bottom={"97px"}
-                    left={message.sender === "contact" ? "0" : "auto"}
-                    right={message.sender === "user" ? "300px" : "auto"}
+                    position="fixed"
+                    top={`${reactionBarPos.top}px`}
+                    left={message.sender === "contact" ? `${reactionBarPos.left}px` : "auto"}
+                    right={message.sender === "user" ? `${reactionBarPos.right}px` : "auto"}
                     zIndex={9999}
                     onClick={(e) => e.stopPropagation()}
                   >

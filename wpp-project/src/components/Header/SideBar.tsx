@@ -1,6 +1,7 @@
 import { Box, Divider, VStack, Image } from "@chakra-ui/react";
 import SideBarBtns from "./SideBarBtns";
 import { sidebarButtons } from "./sidebarConfig";
+import { useState } from "react";
 
 export default function SideBar() {
   // filtra icones até community
@@ -12,6 +13,9 @@ export default function SideBar() {
   const settingsButton = sidebarButtons.find(
     (button) => button.id === 'settings'
   );
+
+  // estado que controla qual botão esta ativo (começando pelo primeiro)
+  const [activeButton, setActiveButton] = useState(mainButtons[0]?.id || "");
 
   return (
     <Box
@@ -31,11 +35,14 @@ export default function SideBar() {
         {/* Seção superior - botões principais */}
         <VStack spacing={"0px"} justify={"flex-start"}>
           {mainButtons.map((button) => (
-            <Box key={button.id} w="full">
+            <VStack key={button.id} w="full" spacing="2.5px">
               <SideBarBtns
                 icon={button.icon}
                 label={button.label}
+                isActive={activeButton === button.id}
+                onClick={() => setActiveButton(button.id)}
               />
+
               {button.id === "community" && (
                 <>
                   <Divider w="full" maxW="40px" h="1px" bg="#0000001A" my="10px" mx="auto" />
@@ -49,11 +56,6 @@ export default function SideBar() {
                     border="none"
                     bg="transparent"
                     _hover={{ bg: "#EAE9E7" }}
-                    _focus={{
-                      bg: "#EAE9E7",
-                      boxShadow: "none",
-                      outline: "none"
-                    }}
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
@@ -69,7 +71,7 @@ export default function SideBar() {
                   </Box>
                 </>
               )}
-            </Box>
+            </VStack>
           ))}
         </VStack>
         <VStack spacing={"0px"}>

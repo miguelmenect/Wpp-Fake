@@ -3,6 +3,8 @@ export interface Message {
   sender: "user" | "contact";
   text: string;
   timestamp: Date;
+  senderName?: string;
+  senderAvatar?: string;
 }
 
 export interface Chat {
@@ -10,6 +12,7 @@ export interface Chat {
   name: string;
   avatar: string;
   messages: Message[];
+  isGroup?: boolean
 }
 
 const now = new Date();
@@ -215,6 +218,61 @@ export const chatsData: Chat[] = [
         sender: "contact",
         text: "Podemos agendar?",
         timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      }
+    ],
+  },
+  //chat de grupo abaixo:
+  {
+    id: "8",
+    name: "Coffee Break da Empresa",
+    avatar: "/img/profile pics/8.jpg",
+    isGroup: true, // valida como grupo
+    messages: [
+      {
+        id: "1",
+        sender: "contact",
+        senderName: "Clara Gestora",
+        senderAvatar: "/img/profile pics/3.jpg",
+        text: "Boa tarde pessoal! Amanhã reunião com equipe de marketing e vendas",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+      {
+        id: "3",
+        sender: "contact",
+        senderName: "Dr. Thiago Tamagushi",
+        senderAvatar: "/img/profile pics/5.jpg",
+        text: "Boa tarde, Positivo!",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+      {
+        id: "4",
+        sender: "contact",
+        senderName: "Carlos Aarav",
+        senderAvatar: "/img/profile pics/1.jpg",
+        text: "Combinado!!!",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+      {
+        id: "5",
+        sender: "contact",
+        senderName: "Clara Gestora",
+        senderAvatar: "/img/profile pics/3.jpg",
+        text: "Pós reunião um cafézinho na sala de confraternização",
+        timestamp: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      },
+      {
+        id: "6",
+        sender: "user",
+        text: "Perfeito! Nos vemos amanhã 👍",
+        timestamp: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+      },
+      {
+        id: "7",
+        sender: "contact",
+        senderName: "Daniel Youssef",
+        senderAvatar: "/img/profile pics/2.jpg",
+        text: "Show! Combinado",
+        timestamp: new Date(now.getTime() - 5 * 60 * 60 * 1000),
       }
     ],
   },

@@ -4,20 +4,38 @@ import { useEffect, useRef, useState } from "react";
 interface MenuItem {
   icon: string;
   label: string;
+  color?: string;
 }
 
 interface DropdownOptProps {
   isOpen: boolean;
+  roundedType?: boolean;
+  w?: string | number;
+  top?: string | number;
+  bottom?: string | number;
+  left?: string | number;
+  right?: string | number;
+  isFilled?: boolean;
   onClose: () => void;
   linePosition?: number;
   menuOptions: MenuItem[];
 }
 
-export default function DropdownOpt({ isOpen, onClose, linePosition = 1, menuOptions }: DropdownOptProps) {
+export default function DropdownOpt({
+  isOpen,
+  roundedType = false,
+  onClose,
+  linePosition,
+  menuOptions,
+  w = "223px",
+  top, right,
+  left,
+  bottom,
+  isFilled = false,
+}: DropdownOptProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [openUpwards, setOpenUpwards] = useState(false);
 
-  // Detecta clicks fora do dropdown para fechar
+  // detecta clicks fora do dropdown para fechar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -34,51 +52,29 @@ export default function DropdownOpt({ isOpen, onClose, linePosition = 1, menuOpt
     };
   }, [isOpen, onClose]);
 
-  // Detecta se deve abrir para cima ou para baixo
-  useEffect(() => {
-    if (isOpen && dropdownRef.current) {
-      const checkPosition = () => {
-        if (dropdownRef.current) {
-          const rect = dropdownRef.current.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-
-          // Calcula o espaço disponível abaixo do dropdown
-          const spaceBelow = viewportHeight - rect.top;
-          const dropdownHeight = rect.height;
-
-          // Se não houver espaço suficiente embaixo, abre para cima
-          setOpenUpwards(spaceBelow < dropdownHeight + 20); // +20 para margem de segurança
-        }
-      };
-
-      // Executa após renderização completa
-      requestAnimationFrame(checkPosition);
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
     <Box
       ref={dropdownRef}
       // posicionamento dinâmico: para cima ou para baixo
-      top={openUpwards ? "auto" : "52px"}
-      bottom={openUpwards ? "52px" : "auto"}
-      left={openUpwards ? "auto" : "403.797px"}
+      top={top}
+      bottom={bottom}
+      left={left}
+      right={right}
       position="absolute"
-      w="223px"
+      w={w}
       minH="189px"
       bg="#FFF"
       borderRadius="16px"
       boxShadow="0 2px 8px rgba(11, 20, 26, 0.26)"
-      p="10px 20px 10px 20px"
       zIndex={100}
     >
-      <VStack align={"center"} justify={"flex-start"} spacing={0}>
+      <VStack align={"center"} justify={"flex-start"} spacing={0} w="full" p="10px">
         {menuOptions.map((item, index) => {
-          const afterDiv = index > linePosition;
+          const afterDiv = linePosition !== undefined && index > linePosition;
           return (
-            <Box key={index}>
+            <Box key={index} w="full">
               <Button
                 variant="ghost"
                 justifyContent="flex-start"
@@ -86,19 +82,29 @@ export default function DropdownOpt({ isOpen, onClose, linePosition = 1, menuOpt
                 px={"7px"}
                 borderRadius="8px"
                 minH="40px"
-                minW="203px"
                 role="group"
-                _hover={{ bg: !afterDiv ? "#F6F5F4" : "#F9EBEF" }}
+                _hover={{ bg: !afterDiv ? "#F6F5F4" : "#F9EBEF" }
+                }
                 onClick={onClose}
               >
-                <HStack>
+                <HStack w="full" justify={"flex-start"}>
                   <Text
                     as={"span"}
-                    className="material-symbols-outlined"
+                    className={!roundedType ? "material-symbols-outlined" : "material-symbols-rounded"}
                     fontSize={"24px"}
-                    color={"#666666"}
-                    _groupHover={{ color: afterDiv ? "#B80531" : "#666666" }}
+                    color={item.color || "#666666"}
+                    _groupHover={{ color: afterDiv ? "#B80531" : (item.color || "#666666") }}
                     lineHeight={"16px"}
+                    sx={{
+                      "&": {
+                        fontVariationSettings: `
+                        'FILL' ${isFilled ? 1 : 0},
+                        'wght' 400,
+                        'GRAD' 0, 
+                        'opsz' 24
+                        `
+                      }
+                    }}
                   >
                     {item.icon}
                   </Text>
@@ -120,7 +126,7 @@ export default function DropdownOpt({ isOpen, onClose, linePosition = 1, menuOpt
             </Box>
           );
         })}
-      </VStack>
-    </Box>
+      </VStack >
+    </Box >
   );
 }

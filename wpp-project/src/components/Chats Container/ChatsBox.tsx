@@ -1,5 +1,5 @@
 import { Box, HStack, Image, VStack, Text } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { chatsData } from "../../utils/chatsData";
 import DropdownOpt from "./DropdownOpt";
 import { useChat } from "../../context/ChatContext";
@@ -42,7 +42,12 @@ export default function Chats({ showArchived }: ChatsProps) {
   const [hoveredChatId, setHoveredChatId] = useState<string | null>(null);
   //armazena id do chat que tem o dropdown aberto
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const { selectedChat, setSelectedChat } = useChat();
+  const chatRef = useRef<HTMLDivElement | null>(null);
+  //estado que guarda direção que dropdonw será aberto
+  const [dropdownDirection, setDropdownDirection] = useState<"up" | "down">("down");
+  const { selectedChat, setSelectedChat, markChatAsRead, countUnreadMessages, hasUnreadMessages } = useChat();
+  //array dos chats de id 7 e 8 
+  const archivedIds = ["7", "8"];
 
   //ordena os containers de chat baseada na mensagem mais recente
   const sortedChats = useMemo(() => {
@@ -68,22 +73,36 @@ export default function Chats({ showArchived }: ChatsProps) {
 
   // função para abrir/fechar dropdown
   const handleDropdownToggle = (chatId: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // impede que o click propague para o Box do chat
+    e.stopPropagation(); // impede que o click propague para o box do chat
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    //espaço visível na tela
+    const windowHeight = window.innerHeight;
+
+    //altura estimada do dropdown (ajuste conforme o seu)
+    const dropdownHeight = 280;
+
+    //verifica se tem espaço suficiente abaixo
+    const hasSpaceBelow = rect.bottom + dropdownHeight < windowHeight;
+
+    // define direção (up ou down)
+    setDropdownDirection(hasSpaceBelow ? "down" : "up");
     setOpenDropdownId(openDropdownId === chatId ? null : chatId);
   };
 
   //função que define qual chat de contato foi clicado
   const handleChatClick = (chat: any) => {
     setSelectedChat(chat);
+    markChatAsRead(chat.id);
   };
 
   const filteredChats = useMemo(() => {
     if (showArchived) {
-      // Mostra apenas o chat de id 7 (arquivado)
-      return sortedChats.filter(chat => chat.id === "7");
+      // mostra apenas o chat de id 7 e 8 que estão arquivados
+      return sortedChats.filter(chat => archivedIds.includes(chat.id));
     } else {
-      // Mostra apenas os chats de id 1 a 6
-      return sortedChats.filter(chat => chat.id !== "7");
+      // mostra apenas o chat de id de 1 a 6
+      return sortedChats.filter(chat => !archivedIds.includes(chat.id));
     }
   }, [sortedChats, showArchived]);
 
@@ -92,9 +111,13 @@ export default function Chats({ showArchived }: ChatsProps) {
       {filteredChats.map((chat) => {
         const lastMessage = chat.messages[chat.messages.length - 1];
         const isSelected = selectedChat?.id === chat.id;
+        const unreadCount = countUnreadMessages(chat.messages);
+        // usa a função do context para verificar se tem mensagens não lidas
+        const hasUnread = hasUnreadMessages(chat);
         return (
           <Box
             key={chat.id}
+            ref={chatRef}
             h="72px"
             w="full"
             display="flex"
@@ -135,7 +158,7 @@ export default function Chats({ showArchived }: ChatsProps) {
                   <Text
                     fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
                     fontSize="14px"
-                    fontWeight="400"
+                    fontWeight={400}
                     color="#666666"
                     noOfLines={1}
                     textAlign="start"
@@ -155,39 +178,70 @@ export default function Chats({ showArchived }: ChatsProps) {
                 <Text
                   fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
                   fontSize="12px"
-                  fontWeight="400"
-                  color="#666666"
+                  fontWeight={hasUnread && (chat.id !== "2" && chat.id !== "8") ? 600 : 400}
+                  color={hasUnread && (chat.id !== "2" && chat.id !== "8") ? "#1DAA61" : "#666666"}
                   flexShrink={0}
                 >
                   {formatTimestamp(lastMessage.timestamp)}
                 </Text>
-                <Box h="16px" position="relative" onClick={(e) => handleDropdownToggle(chat.id, e)}>
-                  <Text as="span"
-                    className="material-symbols-outlined"
-                    fontSize="16px"
-                    color="#636261"
-                    transform={hoveredChatId === chat.id
-                      ? "translateX(0) rotate(90deg)"
-                      : "translateX(12px) rotate(90deg)"
-                    }
-                    opacity={hoveredChatId === chat.id ? 1 : 0}
-                    transition="all 0.1s ease"
-                    display="block"
-                  >
-                    arrow_forward_ios
-                  </Text>
-                </Box>
+                <HStack spacing="2px" justify={"flex-end"}>
+                  {hasUnread && (chat.id !== "2" && chat.id !== "8") && (
+                    <Box
+                      bg="#1DAA61"
+                      borderRadius="full"
+                      minW="20px"
+                      h="20px"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                      px="4px"
+                      py="2px"
+                      transition="transform 0.2s ease"
+                      transform={hoveredChatId === chat.id ? "translateX(-5px)" : "translateX(0)"}
+                    >
+                      <Text
+                        fontSize="12px"
+                        fontWeight={545}
+                        color="#FFF"
+                        lineHeight="8.46px"
+                      >
+                        {unreadCount}
+                      </Text>
+                    </Box>
+                  )}
+                  {hoveredChatId === chat.id && (
+                    <Box h="16px" position="relative" onClick={(e) => handleDropdownToggle(chat.id, e)}>
+                      <Text as="span"
+                        className="material-symbols-outlined"
+                        fontSize="16px"
+                        color="#636261"
+                        transform={hoveredChatId === chat.id
+                          ? "translateX(0) rotate(90deg)"
+                          : "translateX(12px) rotate(90deg)"
+                        }
+                        opacity={hoveredChatId === chat.id ? 1 : 0}
+                        transition="all 0.1s ease"
+                        display="block"
+                      >
+                        arrow_forward_ios
+                      </Text>
+                    </Box>
+                  )}
+                </HStack>
               </VStack>
             </HStack>
             <DropdownOpt
               isOpen={openDropdownId === chat.id}
-              onClose={() => setOpenDropdownId(null)}
-              linePosition={4}
               menuOptions={menuOptions}
+              linePosition={4}
+              left="340px"
+              top={dropdownDirection === "down" ? "40px" : ""}
+              bottom={dropdownDirection === "up" ? "40px" : ""}
+              onClose={() => setOpenDropdownId(null)}
             />
-          </Box>
+          </Box >
         );
       })}
-    </VStack>
+    </VStack >
   );
 }

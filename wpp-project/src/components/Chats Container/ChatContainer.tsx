@@ -1,15 +1,17 @@
 import { Box, Button, Flex, HStack, Input, InputGroup, InputLeftElement, Text, VStack } from "@chakra-ui/react";
-import { MoreOptIcon, NewChatIcon, WhatsAppLogo } from "../../utils/Icons";
-import { useEffect, useRef, useState } from "react";
+import { NewChatIcon, WhatsAppLogo } from "../../utils/Icons";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DropdownOpt from "./DropdownOpt";
 import FilterBtns from "./FilterBtns";
 import Chats from "./ChatsBox";
-import ReactionBar from "../Contacts Chat Area/ReactionBar";
+import { useChat } from "../../context/ChatContext";
+import { chatsData } from "../../utils/chatsData";
 
 export default function ChatContainer() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [showArchived, setShowArchived] = useState(false);
+  const { countUnreadMessages, hasUnreadMessages } = useChat();
 
   const chatOptions = [
     { icon: "group_add", label: "Novo grupo" },
@@ -17,6 +19,17 @@ export default function ChatContainer() {
     { icon: "check_box", label: "Selecionar conversas" },
     { icon: "logout", label: "Desconectar" },
   ];
+
+  const archivedChat = useMemo(() => {
+    return chatsData.find(chat => chat.id === "7");
+  }, []);
+
+  const archivedChatUnreadCount = useMemo(() => {
+    if (archivedChat && hasUnreadMessages(archivedChat)) {
+      return countUnreadMessages(archivedChat.messages);
+    }
+    return 0;
+  }, [archivedChat, hasUnreadMessages, countUnreadMessages]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -130,12 +143,21 @@ export default function ChatContainer() {
                   }}
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
                 >
-                  <MoreOptIcon />
+                  <Text
+                    as="span"
+                    className="material-symbols-outlined"
+                    fontSize="24px"
+                    color="black"
+                  >
+                    more_vert
+                  </Text>
                 </Button>
                 {/* dropdown menu */}
                 <DropdownOpt
                   isOpen={isMenuOpen}
                   menuOptions={chatOptions}
+                  top="40px"
+                  left="41px"
                   linePosition={2}
                   onClose={() => setIsMenuOpen(false)}
                 />
@@ -215,13 +237,15 @@ export default function ChatContainer() {
                   Arquivadas
                 </Text>
               </HStack>
-              <Text
-                fontSize="12px"
-                fontWeight={600}
-                color="#1DAA61"
-              >
-                2
-              </Text>
+              {archivedChatUnreadCount > 0 && (
+                <Text
+                  fontSize="12px"
+                  fontWeight={600}
+                  color="#1DAA61"
+                >
+                  {archivedChatUnreadCount}
+                </Text>
+              )}
             </Flex>
           )}
 
