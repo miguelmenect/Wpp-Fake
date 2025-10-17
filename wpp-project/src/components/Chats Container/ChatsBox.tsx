@@ -32,7 +32,6 @@ const truncateMessage = (text: string, maxLength: number) => {
   return text.slice(0, maxLength) + "...";
 };
 
-
 interface ChatsProps {
   showArchived: boolean;
 }
@@ -42,25 +41,24 @@ export default function Chats({ showArchived }: ChatsProps) {
   const [hoveredChatId, setHoveredChatId] = useState<string | null>(null);
   //armazena id do chat que tem o dropdown aberto
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
-  const chatRef = useRef<HTMLDivElement | null>(null);
   //estado que guarda direção que dropdonw será aberto
   const [dropdownDirection, setDropdownDirection] = useState<"up" | "down">("down");
-  const { selectedChat, setSelectedChat, markChatAsRead, countUnreadMessages, hasUnreadMessages } = useChat();
+  const chatRef = useRef<HTMLDivElement | null>(null);
+
+  // usar contexto global
+  const {
+    chats,
+    selectedChat,
+    setSelectedChat,
+    markChatAsRead,
+    countUnreadMessages,
+    hasUnreadMessages,
+  } = useChat();
+
   //array dos chats de id 7 e 8 
   const archivedIds = ["7", "8"];
 
-  //ordena os containers de chat baseada na mensagem mais recente
-  const sortedChats = useMemo(() => {
-    return [...chatsData].sort((a, b) => {
-      //compara as ultimas mensagens para ordenar os containers de chat
-      const lastMessageA = a.messages[a.messages.length - 1];
-      const lastMessageB = b.messages[b.messages.length - 1];
-      //captura valor de ultima mensagem enviada para exibir no preview
-      return lastMessageB.timestamp.getTime() - lastMessageA.timestamp.getTime();
-    });
-  }, []);
-
-  // Opções do menu dropdown
+  // opções do menu dropdown
   const menuOptions = [
     { icon: "archive", label: "Arquivar conversa" },
     { icon: "notifications", label: "Reativar notificações" },
@@ -78,13 +76,10 @@ export default function Chats({ showArchived }: ChatsProps) {
     const rect = target.getBoundingClientRect();
     //espaço visível na tela
     const windowHeight = window.innerHeight;
-
     //altura estimada do dropdown (ajuste conforme o seu)
     const dropdownHeight = 280;
-
     //verifica se tem espaço suficiente abaixo
     const hasSpaceBelow = rect.bottom + dropdownHeight < windowHeight;
-
     // define direção (up ou down)
     setDropdownDirection(hasSpaceBelow ? "down" : "up");
     setOpenDropdownId(openDropdownId === chatId ? null : chatId);
@@ -96,15 +91,25 @@ export default function Chats({ showArchived }: ChatsProps) {
     markChatAsRead(chat.id);
   };
 
+  const sortedChats = useMemo(() => {
+    return [...chats].sort((a, b) => {
+      const lastMessageA =
+        a.lastMessage || a.messages[a.messages.length - 1];
+      const lastMessageB =
+        b.lastMessage || b.messages[b.messages.length - 1];
+      return (
+        lastMessageB.timestamp.getTime() - lastMessageA.timestamp.getTime()
+      );
+    });
+  }, [chats]);
+
+  //filtro para chats arquivados ou normais
   const filteredChats = useMemo(() => {
-    if (showArchived) {
-      // mostra apenas o chat de id 7 e 8 que estão arquivados
-      return sortedChats.filter(chat => archivedIds.includes(chat.id));
-    } else {
-      // mostra apenas o chat de id de 1 a 6
-      return sortedChats.filter(chat => !archivedIds.includes(chat.id));
-    }
+    return showArchived
+      ? sortedChats.filter((chat) => archivedIds.includes(chat.id))
+      : sortedChats.filter((chat) => !archivedIds.includes(chat.id));
   }, [sortedChats, showArchived]);
+
 
   return (
     <VStack w="full" spacing="0px" align="flex-start" px="10px">
@@ -151,21 +156,35 @@ export default function Chats({ showArchived }: ChatsProps) {
                 >
                   {chat.name}
                 </Text>
-                <HStack w="full" spacing="6px">
-                  {lastMessage.sender === "user" && (
-                    <DoubleCheck />
-                  )}
-                  <Text
-                    fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
-                    fontSize="14px"
-                    fontWeight={400}
-                    color="#666666"
-                    noOfLines={1}
-                    textAlign="start"
-                  >
-                    {/*max 46 caracteres e então resume a mensagem */}
-                    {truncateMessage(lastMessage.text, 46)}
-                  </Text>
+                <HStack w="full" spacing="3px">
+                  {lastMessage.sender === "user" && <DoubleCheck />}
+                  <HStack>
+                    {chat.isGroup && (
+                      <Text
+                        fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
+                        fontSize="14px"
+                        fontWeight={400}
+                        color="#666666"
+                        noOfLines={1}
+                        textAlign="start"
+                      >
+                        {lastMessage.sender === "user"
+                          ? "Você:"
+                          : `${lastMessage.senderName || ""}:`}
+                      </Text>
+                    )}
+                    <Text
+                      fontFamily='"Segoe UI", "Helvetica Neue", Helvetica, "Lucida Grande", Arial, Ubuntu, Cantarell, "Fira Sans", sans-serif'
+                      fontSize="14px"
+                      fontWeight={400}
+                      color="#666666"
+                      noOfLines={1}
+                      textAlign="start"
+                    >
+                      {/*max 46 caracteres e então resume a mensagem */}
+                      {truncateMessage(lastMessage.text, 46)}
+                    </Text>
+                  </HStack>
                 </HStack>
               </VStack>
               {/* hora + icone de dropdonw */}

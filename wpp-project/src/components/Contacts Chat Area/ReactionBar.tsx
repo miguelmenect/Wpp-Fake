@@ -2,6 +2,7 @@ import { Button, Flex, HStack, Image, Text } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 
 const MotionFlex = motion(Flex);
+const MotionImage = motion(Image);
 
 export default function ReactionBar({ onClose }: { onClose?: () => void }) {
   const urlImages = [
@@ -38,7 +39,7 @@ export default function ReactionBar({ onClose }: { onClose?: () => void }) {
     >
       <HStack spacing="5px" align="center" justify={"center"}>
         {urlImages.map((url, index) => (
-          <Image
+          <MotionImage
             key={index}
             src={url}
             alt={`Emoji ${index + 1}`}
@@ -46,6 +47,13 @@ export default function ReactionBar({ onClose }: { onClose?: () => void }) {
             p={0}
             cursor="pointer"
             onClick={() => handleSelect(url)}
+            initial={{ scale: 0, opacity: 0, x: -10 }}
+            animate={{ scale: 1, opacity: 1, x: 0 }}
+            transition={{
+              duration: 0.25,
+              delay: index * 0.09, // delay incrementado para cada emoji da reactionbar
+              ease: [0.34, 1.56, 0.64, 1], // easing com bounce suave
+            }}
           />
         ))}
         <Button

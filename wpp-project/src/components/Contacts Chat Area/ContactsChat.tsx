@@ -8,7 +8,7 @@ import PhoneCallBar from "./PhoneCallBar";
 import DropdownOpt from "../Chats Container/DropdownOpt";
 
 export default function ContactsChat() {
-  const { selectedChat } = useChat();
+  const { selectedChat, updateChatMessages } = useChat();
   //valor do que foi escrito no input
   const [messageInput, setMessageInput] = useState("");
   //estado do dropdonw do header
@@ -19,6 +19,7 @@ export default function ContactsChat() {
   //estado do container de ligação
   const [isPhoneCallOpen, setIsPhoneCallOpen] = useState(false);
   const callContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   //fecha container ou dropdonw ao clicar fora
   useEffect(() => {
@@ -37,18 +38,47 @@ export default function ContactsChat() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isPhoneCallOpen]);
 
+  //função que faz o envio de mensagem
+  const handleSendMessage = () => {
+    //não faz exexução se nenhum chat selecionado ou input vazio
+    if (!selectedChat || messageInput.trim() === "") return;
+
+    const newMessage = {
+      id: `${Date.now()}`,
+      sender: "user" as const, //remetente da mensagem sempre como usuario nunca contao
+      text: messageInput.trim(),
+      timestamp: new Date(), //data e hora atual do momento do envio da mensagem
+    };
+
+    updateChatMessages(selectedChat.id, newMessage);
+    setMessageInput(""); //deixa input vazio pós o envio de uma mensagem
+
+    // foca no input após enviar mensagem
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  // função para enviar mensagem ao apertar "enter"
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   //opções do dropdonw de contato do header
   const contactOpt = [
-    { icon: "info", label: "Dados do contato" },
+    { icon: "info", label: selectedChat?.isGroup ? "Dados do grupo" : "Dados do contato" },
     { icon: "check_box", label: "Selecionar mensagens" },
     { icon: "notifications_off", label: "Desativar notificações" },
     { icon: "search_activity", label: "Mensagens temporárias" },
     { icon: "favorite", label: "Adicionar aos favoritos" },
     { icon: "cancel", label: "Fechar conversa" },
-    { icon: "thumb_down", label: "Denunciar" },
-    { icon: "block", label: "Bloquear" },
+    { icon: selectedChat?.isGroup ? "" : "thumb_down", label: selectedChat?.isGroup ? "" : "Denunciar" },
+    { icon: selectedChat?.isGroup ? "" : "block", label: selectedChat?.isGroup ? "" : "Bloquear" },
     { icon: "do_not_disturb_on", label: "Limpar conversa" },
-    { icon: "delete", label: "Apagar conversa" },
+    { icon: selectedChat?.isGroup ? "logout" : "delete", label: selectedChat?.isGroup ? "Sair do grupo" : "Apagar conversa" },
   ];
 
   const mediaMenu = [
@@ -71,8 +101,8 @@ export default function ContactsChat() {
     "Clara Gestora",
     "Daniel Youssef",
     "Dr. Thiago Tamagushi",
+    "Você"
   ];
-
 
   if (!selectedChat) {
     return <Messages />;
@@ -137,7 +167,6 @@ export default function ContactsChat() {
                 borderRadius="full"
                 h="40px"
                 px={icon === "videocam" ? "10px" : "0"}
-                isDisabled={!selectedChat}
                 onClick={() => {
                   if (icon === "videocam") {
                     setIsPhoneCallOpen((prev) => !prev);
@@ -263,6 +292,8 @@ export default function ContactsChat() {
             </Button>
           </HStack>
           <Input
+            ref={inputRef}
+            value={messageInput}
             placeholder="Digite uma mensagem"
             fontSize="15px"
             border="none"
@@ -279,6 +310,7 @@ export default function ContactsChat() {
             _placeholder={{ color: "#666666" }}
             borderRadius="full"
             h="full"
+            onKeyPress={handleKeyPress}
             onChange={(e) => setMessageInput(e.target.value)}
           />
           <InputRightElement h="full" right="5px">
@@ -315,6 +347,7 @@ export default function ContactsChat() {
                 _hover={{ bg: "#1DAA61" }}
                 borderRadius={"full"}
                 boxSize={"40px"}
+                onClick={handleSendMessage}
               >
                 <Text
                   as="span"

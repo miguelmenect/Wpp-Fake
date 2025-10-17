@@ -12,7 +12,12 @@ export interface Chat {
   name: string;
   avatar: string;
   messages: Message[];
-  isGroup?: boolean
+  isGroup?: boolean;
+  lastMessage?: {
+    text: string;
+    timestamp: Date;
+    sender: "user" | "contact";
+  };
 }
 
 const now = new Date();
@@ -23,15 +28,15 @@ function getNextAvailableDate(): string {
 
   const dayOfWeek = future.getDay(); // 0 = domingo, 6 = sábado
 
-  // Se cair no sábado (6), pula para segunda (+2)
-  // Se cair no domingo (0), pula para segunda (+1)
+  // se cair no sábado (6), pula para segunda (+2)
+  // se cair no domingo (0), pula para segunda (+1)
   if (dayOfWeek === 6) {
     future.setDate(future.getDate() + 2);
   } else if (dayOfWeek === 0) {
     future.setDate(future.getDate() + 1);
   }
 
-  // Formata como dia/mês
+  // formata como dia/mês
   const day = future.getDate().toString().padStart(2, "0");
   const month = (future.getMonth() + 1).toString().padStart(2, "0");
   return `${day}/${month}`;
@@ -224,9 +229,9 @@ export const chatsData: Chat[] = [
   //chat de grupo abaixo:
   {
     id: "8",
-    name: "Coffee Break da Empresa",
+    name: "Coffee Break da Empresa ☕",
     avatar: "/img/profile pics/8.jpg",
-    isGroup: true, // valida como grupo
+    isGroup: true, // validada como grupo
     messages: [
       {
         id: "1",

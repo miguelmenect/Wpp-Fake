@@ -1,4 +1,4 @@
-import { Box, VStack, Flex, HStack, Image, Button, Text, Portal } from "@chakra-ui/react";
+import { Box, VStack, Flex, HStack, Image, Button, Text } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "../../context/ChatContext";
 import { DoubleCheck } from "../../utils/Icons";
@@ -12,12 +12,35 @@ export default function Messages() {
   const reactionBarRef = useRef<HTMLDivElement | null>(null);
   const { selectedChat } = useChat();
 
+  const colorsNames = ["#06CF9C", "#A5B337", "#53BDEB", "#7F66FF",];
+
+  //função para pegar os valores de cor de colorsNames
+  const getColorForSender = (senderName: string) => {
+    if (!selectedChat?.isGroup) return "#000";
+
+    // pega todos os nomes únicos do chat atual
+    const uniqueSenders = Array.from(
+      new Set(
+        selectedChat.messages
+          .filter(m => m.sender === "contact" && m.senderName)
+          .map(m => m.senderName)
+      )
+    );
+
+    // Encontra o índice do sender atual na lista ordenada
+    const senderIndex = uniqueSenders.indexOf(senderName);
+
+    // Retorna a cor correspondente (com wrap caso tenha mais pessoas que cores)
+    return colorsNames[senderIndex % colorsNames.length];
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
       minute: '2-digit'
     });
   };
+
   //abre reactionbar
   const toggleReactionBar = (messageId: string, buttonElement: HTMLButtonElement, sender: "user" | "contact") => {
     if (reactionBarOpen === messageId) {
@@ -158,7 +181,7 @@ export default function Messages() {
 
   return (
     <Box
-      p={selectedChat.isGroup ? "20px 57px 20px 36px" : "20px 57px 20px 62px"}
+      p={selectedChat.isGroup ? "20px 57px 20px 30px" : "20px 57px 20px 62px"}
       overflowY={"auto"}
       h="calc(100vh - 64px - 76px)"
       display="flex"
@@ -192,7 +215,7 @@ export default function Messages() {
               justify={message.sender === "user" ? "flex-end" : "flex-start"}
               onMouseEnter={() => setIsTextHovered(message.id)}
               onMouseLeave={() => setIsTextHovered(null)}
-              mb="1px"
+              mb={selectedChat.isGroup ? "12px" : "1px"}
               position="relative"
             >
               <HStack spacing="5px">
@@ -202,7 +225,8 @@ export default function Messages() {
                     src={message.senderAvatar}
                     alt={message.senderName}
                     borderRadius={"full"}
-                    mb="10px"
+                    mb="20px"
+                    cursor="pointer"
                   />
                 )}
                 <Box>
@@ -247,17 +271,29 @@ export default function Messages() {
                     w="full"
                     alignItems="flex-end"
                   >
-                    <Flex h="full" align={"center"} p="6px 7px 8px 9px">
+                    <VStack align="flex-start" p="6px 7px 8px 9px" spacing="2px">
+                      {selectedChat.isGroup && message.sender === "contact" && (
+                        <Text
+                          fontWeight={500}
+                          fontSize="12.8px"
+                          color={getColorForSender(message.senderName || "")}
+                          _hover={{ textDecoration: "underline" }}
+                          cursor="pointer"
+                        >
+                          {message.senderName}
+                        </Text>
+                      )}
                       <Text
                         color="#0A0A0A"
                         fontSize="14.2px"
+                        fontWeight={400}
                         lineHeight="19px"
                         whiteSpace="pre-wrap"
                         wordBreak="break-word"
                       >
                         {message.text}
                       </Text>
-                    </Flex>
+                    </VStack>
                     <HStack
                       alignSelf="flex-end"
                       flexShrink={0}

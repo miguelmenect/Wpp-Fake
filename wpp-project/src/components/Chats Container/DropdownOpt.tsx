@@ -71,7 +71,7 @@ export default function DropdownOpt({
       zIndex={100}
     >
       <VStack align={"center"} justify={"flex-start"} spacing={0} w="full" p="10px">
-        {menuOptions.map((item, index) => {
+        {menuOptions.filter(item => item.icon.trim() !== "" && item.label.trim() !== "").map((item, index) => {
           const afterDiv = linePosition !== undefined && index > linePosition;
           return (
             <Box key={index} w="full">

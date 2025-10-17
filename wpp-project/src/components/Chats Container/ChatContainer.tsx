@@ -61,7 +61,7 @@ export default function ChatContainer() {
         {showArchived ? (
           // cabeçalho dos arquivados
           <VStack w="full" align="flex-start" spacing="15px" px="10px">
-            <HStack justify="flex-start" w="full" spacing="15px">
+            <HStack justify="flex-start" w="full" spacing="2px">
               <Button
                 bg="transparent"
                 boxSize="40px"
@@ -156,7 +156,7 @@ export default function ChatContainer() {
                 <DropdownOpt
                   isOpen={isMenuOpen}
                   menuOptions={chatOptions}
-                  top="40px"
+                  top="45px"
                   left="41px"
                   linePosition={2}
                   onClose={() => setIsMenuOpen(false)}
