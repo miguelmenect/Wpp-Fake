@@ -54,7 +54,7 @@ export default function ChatContainer() {
       w="409px"
       h="100vh"
       bg="#FFF"
-      border="1px solid #DEDCDA"
+      borderInline="1px solid #DEDCDA"
       flexShrink={0}
     >
       <VStack py="10px" spacing="15px">

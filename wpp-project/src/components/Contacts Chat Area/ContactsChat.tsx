@@ -6,6 +6,7 @@ import Messages from "./TextMessages";
 import { AnimatePresence } from "framer-motion";
 import PhoneCallBar from "./PhoneCallBar";
 import DropdownOpt from "../Chats Container/DropdownOpt";
+import MediaPreview from "./MediaPreview";
 
 export default function ContactsChat() {
   const { selectedChat, updateChatMessages } = useChat();
@@ -16,6 +17,9 @@ export default function ContactsChat() {
   //estado do dropdonw do botão "+" no input
   const [isMediaBtnOpen, setIsMediaBtnOpen] = useState(false);
   const [isMicHovered, setIsMicHovered] = useState(false);
+  //arquivos de imagem
+  const [selectedMedia, setSelectedMedia] = useState<{ file: File; preview: string; type: 'image' | 'video' } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   //estado do container de ligação
   const [isPhoneCallOpen, setIsPhoneCallOpen] = useState(false);
   const callContainerRef = useRef<HTMLDivElement>(null);
@@ -38,22 +42,56 @@ export default function ContactsChat() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isPhoneCallOpen]);
 
-  //função que faz o envio de mensagem
-  const handleSendMessage = () => {
-    //não faz exexução se nenhum chat selecionado ou input vazio
-    if (!selectedChat || messageInput.trim() === "") return;
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const fileType = file.type.startsWith('image/') ? 'image' : 'video';
+    const preview = URL.createObjectURL(file);
+
+    setSelectedMedia({ file, preview, type: fileType });
+    setIsMediaBtnOpen(false);
+  };
+
+  const handleSendMedia = (caption: string) => {
+    if (!selectedChat || !selectedMedia) return;
 
     const newMessage = {
       id: `${Date.now()}`,
-      sender: "user" as const, //remetente da mensagem sempre como usuario nunca contao
-      text: messageInput.trim(),
-      timestamp: new Date(), //data e hora atual do momento do envio da mensagem
+      sender: "user" as const,
+      text: caption, // legenda (pode ser vazia)
+      timestamp: new Date(),
+      media: {
+        url: selectedMedia.preview,
+        type: selectedMedia.type
+      }
     };
 
     updateChatMessages(selectedChat.id, newMessage);
-    setMessageInput(""); //deixa input vazio pós o envio de uma mensagem
+    setSelectedMedia(null);
+    setMessageInput("");
 
-    // foca no input após enviar mensagem
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  // função antiga para enviar apenas texto
+  const handleSendMessage = () => {
+    if (!selectedChat) return;
+
+    if (messageInput.trim() !== "") {
+      const newMessage = {
+        id: `${Date.now()}`,
+        sender: "user" as const,
+        text: messageInput.trim(),
+        timestamp: new Date(),
+      };
+
+      updateChatMessages(selectedChat.id, newMessage);
+      setMessageInput("");
+    }
+
     if (inputRef.current) {
       inputRef.current.focus();
     }
@@ -64,6 +102,14 @@ export default function ContactsChat() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
+    }
+  };
+
+  //função para fechar a tela de upload de imagem
+  const handleCancelMedia = () => {
+    if (selectedMedia) {
+      URL.revokeObjectURL(selectedMedia.preview);
+      setSelectedMedia(null);
     }
   };
 
@@ -110,13 +156,13 @@ export default function ContactsChat() {
 
   return (
     <Box
-      bg="#F5F1EB"
+      bg={selectedMedia ? "white" : "#F5F1EB"}
       flex="1"
       h="100vh"
       position="relative"
     >
       <Box
-        backgroundImage={`url("/img/various/background-chat.png")`}
+        backgroundImage={selectedMedia ? "none" : `url("/img/various/background-chat.png")`}
         h="full"
         w="full"
       >
@@ -124,7 +170,8 @@ export default function ContactsChat() {
           w="full"
           h="64px"
           bg="white"
-          boxShadow="0 1px 4px rgba(10, 10, 10, 0.12)"
+          boxShadow={!selectedMedia ? "0 1px 4px rgba(10, 10, 10, 0.12)" : "none"}
+          borderBottom="1px solid #DEDCDA"
           p="10px 16px 10px 16px"
           justify="space-between"
         >
@@ -226,150 +273,173 @@ export default function ContactsChat() {
         </AnimatePresence>
 
         {/** componente com balãozinhos das mensagens */}
-        < Messages />
-        {/** input de texto */}
-        <InputGroup
-          position="absolute"
-          bottom="12px"
-          right="0"
-          w="full"
-          maxW="866.3px"
-          mx="12px"
-          h="52px"
-          bg="white"
-          boxShadow="0 1px 6px #0000001f"
-          borderRadius="full"
-        >
-          <HStack
-            position="absolute"
-            left="5px"
-            top="50%"
-            transform="translateY(-50%)"
-            spacing="0px"
-            zIndex={2}
-          >
-            <DropdownOpt
-              isOpen={isMediaBtnOpen}
-              roundedType={true}
-              w="196.58px"
-              bottom={"50px"}
-              right={"0px"}
-              isFilled={true}
-              menuOptions={mediaMenu}
-              onClose={() => setIsMediaBtnOpen(false)}
-            />
-            <Button
-              bg="transparent"
-              _hover={{ bg: "#F6F5F4" }}
-              _focus={{
-                bg: isMediaBtnOpen ? "#F6F5F4" : "transparent"
-              }}
-              borderRadius={"full"}
-              boxSize={"40px"}
-              onClick={() => setIsMediaBtnOpen(true)}
-              transition="background 0.2s ease"
-            >
-              <Text
-                as="span"
-                className="material-symbols-outlined"
-                fontSize="24px"
-                color="black"
-                transition="transform 0.3s ease"
-                transform={isMediaBtnOpen ? "rotate(135deg)" : "rotate(0deg)"}
-              >
-                add
-              </Text>
-            </Button>
-
-            <Button
-              bg="transparent"
-              _hover={{ bg: "#F6F5F4" }}
-              borderRadius={"full"}
-              boxSize={"40px"}
-              p="0"
-            >
-              <ExpressionsIcon width="24px" height="24px" />
-            </Button>
-          </HStack>
-          <Input
-            ref={inputRef}
-            value={messageInput}
-            placeholder="Digite uma mensagem"
-            fontSize="15px"
-            border="none"
-            color="black"
-            outline={"none"}
-            pl="91px"
-            pr="10px"
-            _hover={{ border: "none" }}
-            _focus={{
-              border: "none",
-              boxShadow: "none",
-              outline: "none"
-            }}
-            _placeholder={{ color: "#666666" }}
-            borderRadius="full"
-            h="full"
-            onKeyPress={handleKeyPress}
-            onChange={(e) => setMessageInput(e.target.value)}
+        {selectedMedia ? (
+          // peview de mídia
+          <MediaPreview
+            media={selectedMedia}
+            onClose={handleCancelMedia}
+            onSend={handleSendMedia}
           />
-          <InputRightElement h="full" right="5px">
-            {messageInput.trim() === "" ? (
-              <Button
-                bg="transparent"
-                _hover={{ bg: "#1DAA61" }}
-                borderRadius={"full"}
-                onMouseEnter={() => setIsMicHovered(true)}
-                onMouseLeave={() => setIsMicHovered(false)}
-                boxSize={isMicHovered ? "41.6px" : "40px"}
-                transition="all 0.2s ease"
+        ) : (
+          /** componente com balãozinhos das mensagens */
+          <Messages />
+        )}
+        {/** input de texto */}
+        {!selectedMedia && (
+          <>
+            <Input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              display="none"
+              onChange={handleFileSelect}
+            />
+            <InputGroup
+              position="absolute"
+              bottom="12px"
+              right="0"
+              w="full"
+              maxW="866.3px"
+              mx="12px"
+              h="52px"
+              bg="white"
+              boxShadow="0 1px 6px #0000001f"
+              borderRadius="full"
+            >
+              <HStack
+                position="absolute"
+                left="5px"
+                top="50%"
+                transform="translateY(-50%)"
+                spacing="0px"
+                zIndex={2}
               >
-                <Text
-                  as="span"
-                  className="material-symbols-outlined"
-                  fontSize="24px"
-                  color={isMicHovered ? "white" : "black"}
-                  transition="color 0.2s ease"
-                  sx={{
-                    "&": {
-                      fontVariationSettings: isMicHovered
-                        ? `'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24`
-                        : `'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24`
+                <DropdownOpt
+                  isOpen={isMediaBtnOpen}
+                  roundedType={true}
+                  w="196.58px"
+                  bottom={"50px"}
+                  right={"0px"}
+                  isFilled={true}
+                  menuOptions={mediaMenu}
+                  onClose={() => setIsMediaBtnOpen(false)}
+                  onItemClick={(label) => {
+                    if (label === "Fotos e vídeos") {
+                      fileInputRef.current?.click();
                     }
                   }}
+                />
+                <Button
+                  bg="transparent"
+                  _hover={{ bg: "#F6F5F4" }}
+                  _focus={{
+                    bg: isMediaBtnOpen ? "#F6F5F4" : "transparent"
+                  }}
+                  borderRadius={"full"}
+                  boxSize={"40px"}
+                  onClick={() => setIsMediaBtnOpen(true)}
+                  transition="background 0.2s ease"
                 >
-                  mic
-                </Text>
-              </Button>
-            ) : (
-              <Button
-                bg="#1DAA61"
-                _hover={{ bg: "#1DAA61" }}
-                borderRadius={"full"}
-                boxSize={"40px"}
-                onClick={handleSendMessage}
-              >
-                <Text
-                  as="span"
-                  className="material-symbols-rounded"
-                  fontSize="24px"
-                  color="white"
-                  sx={{
-                    "&": {
-                      fontVariationSettings:
-                        `'FILL' 1, 
+                  <Text
+                    as="span"
+                    className="material-symbols-outlined"
+                    fontSize="24px"
+                    color="black"
+                    transition="transform 0.3s ease"
+                    transform={isMediaBtnOpen ? "rotate(135deg)" : "rotate(0deg)"}
+                  >
+                    add
+                  </Text>
+                </Button>
+                <Button
+                  bg="transparent"
+                  _hover={{ bg: "#F6F5F4" }}
+                  borderRadius={"full"}
+                  boxSize={"40px"}
+                  p="0"
+                >
+                  <ExpressionsIcon width="24px" height="24px" />
+                </Button>
+              </HStack>
+              <Input
+                ref={inputRef}
+                value={messageInput}
+                placeholder="Digite uma mensagem"
+                fontSize="15px"
+                border="none"
+                color="black"
+                outline={"none"}
+                pl="91px"
+                pr="10px"
+                _hover={{ border: "none" }}
+                _focus={{
+                  border: "none",
+                  boxShadow: "none",
+                  outline: "none"
+                }}
+                _placeholder={{ color: "#666666" }}
+                borderRadius="full"
+                h="full"
+                onKeyPress={handleKeyPress}
+                onChange={(e) => setMessageInput(e.target.value)} />
+              <InputRightElement h="full" right="5px">
+                {!selectedMedia && messageInput.trim() === "" ? (
+                  <Button
+                    bg="transparent"
+                    _hover={{ bg: "#1DAA61" }}
+                    borderRadius={"full"}
+                    onMouseEnter={() => setIsMicHovered(true)}
+                    onMouseLeave={() => setIsMicHovered(false)}
+                    boxSize={isMicHovered ? "41.6px" : "40px"}
+                    transition="all 0.2s ease"
+                  >
+                    <Text
+                      as="span"
+                      className="material-symbols-outlined"
+                      fontSize="24px"
+                      color={isMicHovered ? "white" : "black"}
+                      transition="color 0.2s ease"
+                      sx={{
+                        "&": {
+                          fontVariationSettings: isMicHovered
+                            ? `'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24`
+                            : `'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24`
+                        }
+                      }}
+                    >
+                      mic
+                    </Text>
+                  </Button>
+                ) : (
+                  <Button
+                    bg="#1DAA61"
+                    _hover={{ bg: "#1DAA61" }}
+                    borderRadius={"full"}
+                    boxSize={"40px"}
+                    onClick={handleSendMessage}
+                  >
+                    <Text
+                      as="span"
+                      className="material-symbols-rounded"
+                      fontSize="24px"
+                      color="white"
+                      sx={{
+                        "&": {
+                          fontVariationSettings: `'FILL' 1, 
                         'wght' 400,
                         'GRAD' 0, 
                         'opsz' 24`
-                    }
-                  }}
-                >
-                  send
-                </Text>
-              </Button>
-            )}
-          </InputRightElement>
-        </InputGroup>
+                        }
+                      }}
+                    >
+                      send
+                    </Text>
+                  </Button>
+                )}
+              </InputRightElement>
+            </InputGroup>
+          </>
+        )}
       </Box >
     </Box >
   )

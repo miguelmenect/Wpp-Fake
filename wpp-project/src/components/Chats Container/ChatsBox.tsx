@@ -1,6 +1,5 @@
 import { Box, HStack, Image, VStack, Text } from "@chakra-ui/react";
 import { useMemo, useRef, useState } from "react";
-import { chatsData } from "../../utils/chatsData";
 import DropdownOpt from "./DropdownOpt";
 import { useChat } from "../../context/ChatContext";
 import { DoubleCheck } from "../../utils/Icons";
@@ -58,17 +57,6 @@ export default function Chats({ showArchived }: ChatsProps) {
   //array dos chats de id 7 e 8 
   const archivedIds = ["7", "8"];
 
-  // opções do menu dropdown
-  const menuOptions = [
-    { icon: "archive", label: "Arquivar conversa" },
-    { icon: "notifications", label: "Reativar notificações" },
-    { icon: "keep", label: "Fixar conversa" },
-    { icon: "mark_unread_chat_alt", label: "Marcar como não lida" },
-    { icon: "favorite", label: "Adicionar aos favoritos" },
-    { icon: "block", label: "Bloquear" },
-    { icon: "delete", label: "Apagar conversa" },
-  ];
-
   // função para abrir/fechar dropdown
   const handleDropdownToggle = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // impede que o click propague para o box do chat
@@ -114,11 +102,23 @@ export default function Chats({ showArchived }: ChatsProps) {
   return (
     <VStack w="full" spacing="0px" align="flex-start" px="10px">
       {filteredChats.map((chat) => {
+        // opções do menu dropdown dos containers da lista de contatos
+        const menuOptions = [
+          { icon: "archive", label: "Arquivar conversa" },
+          { icon: "notifications", label: "Reativar notificações" },
+          { icon: "keep", label: "Fixar conversa" },
+          { icon: "mark_unread_chat_alt", label: "Marcar como não lida" },
+          { icon: "favorite", label: "Adicionar aos favoritos" },
+          { icon: chat.isGroup ? "" : "block", label: chat.isGroup ? "" : "Bloquear" },
+          { icon: chat.isGroup ? "logout" : "delete", label: chat.isGroup ? "Sair do grupo" : "Apagar conversa" },
+        ];
+
         const lastMessage = chat.messages[chat.messages.length - 1];
         const isSelected = selectedChat?.id === chat.id;
         const unreadCount = countUnreadMessages(chat.messages);
         // usa a função do context para verificar se tem mensagens não lidas
         const hasUnread = hasUnreadMessages(chat);
+
         return (
           <Box
             key={chat.id}
@@ -181,8 +181,28 @@ export default function Chats({ showArchived }: ChatsProps) {
                       noOfLines={1}
                       textAlign="start"
                     >
-                      {/*max 46 caracteres e então resume a mensagem */}
-                      {truncateMessage(lastMessage.text, 46)}
+                      {lastMessage.media ? (
+                        <HStack
+                          spacing={"2px"}
+                        >
+                          <Text as="span"
+                            className="material-symbols-rounded"
+                            fontSize="20px"
+                            color="#00000099"
+                          >
+                            {lastMessage.media ? "image" : "videocam"}
+                          </Text>
+                          <Text
+                            color="#00000099"
+                            fontWeight={400}
+                            fontSize={"14px"}
+                          >
+                            {lastMessage.media ? "Foto" : "Vídeo"}
+                          </Text>
+                        </HStack>
+                      )
+                        : truncateMessage(lastMessage.text, 46)
+                      }
                     </Text>
                   </HStack>
                 </HStack>
@@ -254,6 +274,7 @@ export default function Chats({ showArchived }: ChatsProps) {
               menuOptions={menuOptions}
               linePosition={4}
               left="340px"
+              w="237px"
               top={dropdownDirection === "down" ? "40px" : ""}
               bottom={dropdownDirection === "up" ? "40px" : ""}
               onClose={() => setOpenDropdownId(null)}

@@ -12,13 +12,11 @@ export default function Messages() {
   const reactionBarRef = useRef<HTMLDivElement | null>(null);
   const { selectedChat } = useChat();
 
-  const colorsNames = ["#06CF9C", "#A5B337", "#53BDEB", "#7F66FF",];
+  const colorsNames = ["#06CF9C", "#A5B337", "#53BDEB", "#7F66FF"];
 
-  //função para pegar os valores de cor de colorsNames
   const getColorForSender = (senderName: string) => {
     if (!selectedChat?.isGroup) return "#000";
 
-    // pega todos os nomes únicos do chat atual
     const uniqueSenders = Array.from(
       new Set(
         selectedChat.messages
@@ -27,10 +25,7 @@ export default function Messages() {
       )
     );
 
-    // Encontra o índice do sender atual na lista ordenada
     const senderIndex = uniqueSenders.indexOf(senderName);
-
-    // Retorna a cor correspondente (com wrap caso tenha mais pessoas que cores)
     return colorsNames[senderIndex % colorsNames.length];
   };
 
@@ -41,7 +36,6 @@ export default function Messages() {
     });
   };
 
-  //abre reactionbar
   const toggleReactionBar = (messageId: string, buttonElement: HTMLButtonElement, sender: "user" | "contact") => {
     if (reactionBarOpen === messageId) {
       setReactionBarOpen(null);
@@ -50,26 +44,23 @@ export default function Messages() {
 
     const rect = buttonElement.getBoundingClientRect();
     setReactionBarPos({
-      top: rect.top - 67, // 67px acima do botão
-      left: sender === "user" ? rect.right + 0 : 535, // 535px à direita do botão (user)
-      right: sender === "contact" ? window.innerWidth - rect.left + 0 : 351, // 351px à esquerda do botão (contact)
+      top: rect.top - 67,
+      left: sender === "user" ? rect.right + 0 : 535,
+      right: sender === "contact" ? window.innerWidth - rect.left + 0 : 351,
     });
     setReactionBarOpen(messageId);
   };
 
-  //fecha reactionbar
   useEffect(() => {
     if (!reactionBarOpen) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      //se a reactionbar existe e o clique foi fora dela então fecha reactionbar
       if (reactionBarRef.current && !reactionBarRef.current.contains(e.target as Node)) {
         setReactionBarOpen(null);
       }
     };
-    //evento para detectar cliques na tela
+
     document.addEventListener("mousedown", handleClickOutside);
-    // remove o evento ao fechar a reactionbar ou desmontar o componente
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [reactionBarOpen]);
 
@@ -79,17 +70,14 @@ export default function Messages() {
       minW="26px"
       borderRadius="full"
       bg="#FFF"
-      _hover={{ bg: "#FFF" }
-      }
+      _hover={{ bg: "#FFF" }}
       boxShadow="0 1px 2px 0 rgba(0, 0, 0, 0.1)"
       _focus={{ boxShadow: "0 1px 4px 0 rgba(0, 0, 0, 0.1)" }}
       p="0"
       display="flex"
       alignItems="center"
       justifyContent="center"
-      onClick={(e) => {
-        toggleReactionBar(messageId, e.currentTarget, sender);
-      }}
+      onClick={(e) => toggleReactionBar(messageId, e.currentTarget, sender)}
     >
       <Text
         as="span"
@@ -100,8 +88,159 @@ export default function Messages() {
       >
         mood
       </Text>
-    </Button >
+    </Button>
   );
+
+  // componente para exibir o timestamp e double check
+  const MessageTimestamp = ({
+    timestamp,
+    isUser,
+    hasMedia,
+    hasCaption
+  }: {
+    timestamp: Date;
+    isUser: boolean;
+    hasMedia: boolean;
+    hasCaption: boolean;
+  }) => (
+    <HStack
+      alignSelf={hasMedia && !hasCaption ? undefined : "flex-end"}
+      flexShrink={0}
+      p={hasMedia && !hasCaption ? "2px 6px" : "0px 7px 2.5px 0px"}
+      spacing="3px"
+      {...(hasMedia && !hasCaption && {
+        position: "absolute",
+        bottom: "14px",
+        right: "14px",
+        borderRadius: "4px",
+      })}
+    >
+      <Text
+        color={hasMedia && !hasCaption ? "#FFFFFFE6" : "#00000099"}
+        fontSize="11px"
+        lineHeight="15px"
+        whiteSpace="nowrap"
+      >
+        {formatTime(timestamp)}
+      </Text>
+      {isUser && (
+        <DoubleCheck
+          customColor={hasMedia && !hasCaption ? "#FFFFFFE6" : "#00000099"}
+        />
+      )}
+    </HStack>
+  );
+
+  // componente para renderizar o conteúdo da mensagem
+  const MessageContent = ({ message }: { message: any }) => {
+    const hasMedia = !!message.media;
+    const hasCaption = hasMedia && message.text && message.text.trim() !== "";
+    const isGroup = selectedChat?.isGroup;
+    const isContact = message.sender === "contact";
+
+    if (hasMedia) {
+      return (
+        <Box position="relative" p="3px">
+          {isGroup && isContact && (
+            <Text
+              fontWeight={500}
+              fontSize="12.8px"
+              color={getColorForSender(message.senderName || "")}
+              _hover={{ textDecoration: "underline" }}
+              cursor="pointer"
+              mb="4px"
+            >
+              {message.senderName}
+            </Text>
+          )}
+          {message.media.type === "image" ? (
+            <Image
+              src={message.media.url}
+              alt="Imagem enviada"
+              borderRadius="8px"
+              maxW="400px"
+              maxH="400px"
+              objectFit="cover"
+              display="block"
+            />
+          ) : (
+            <Box
+              as="video"
+              src={message.media.url}
+              controls
+              borderRadius="8px"
+              maxW="400px"
+              maxH="400px"
+            />
+          )}
+
+          {/* texto abaixo da mídia (foto ou vídeo) */}
+          {hasCaption ? (
+            <HStack w="full" alignItems="flex-end" pt="6px" px="6px" pb="3px">
+              <Text
+                color="#0A0A0A"
+                fontSize="14.2px"
+                fontWeight={400}
+                lineHeight="19px"
+                whiteSpace="pre-wrap"
+                wordBreak="break-word"
+                flex="1"
+              >
+                {message.text}
+              </Text>
+              <MessageTimestamp
+                timestamp={message.timestamp}
+                isUser={message.sender === "user"}
+                hasMedia={true}
+                hasCaption={true}
+              />
+            </HStack>
+          ) : (
+            <MessageTimestamp
+              timestamp={message.timestamp}
+              isUser={message.sender === "user"}
+              hasMedia={true}
+              hasCaption={false}
+            />
+          )}
+        </Box>
+      );
+    }
+
+    return (
+      <HStack w="full" alignItems="flex-end">
+        <VStack align="flex-start" p="6px 7px 8px 9px" spacing="2px">
+          {isGroup && isContact && (
+            <Text
+              fontWeight={500}
+              fontSize="12.8px"
+              color={getColorForSender(message.senderName || "")}
+              _hover={{ textDecoration: "underline" }}
+              cursor="pointer"
+            >
+              {message.senderName}
+            </Text>
+          )}
+          <Text
+            color="#0A0A0A"
+            fontSize="14.2px"
+            fontWeight={400}
+            lineHeight="19px"
+            whiteSpace="pre-wrap"
+            wordBreak="break-word"
+          >
+            {message.text}
+          </Text>
+        </VStack>
+        <MessageTimestamp
+          timestamp={message.timestamp}
+          isUser={message.sender === "user"}
+          hasMedia={false}
+          hasCaption={false}
+        />
+      </HStack>
+    );
+  };
 
   if (!selectedChat) {
     return (
@@ -114,20 +253,14 @@ export default function Messages() {
         alignItems="center"
         justifyContent="center"
       >
-        <VStack
-          h="full"
-          justify={"center"}
-        >
+        <VStack h="full" justify="center">
           <Image
             h="228px"
             w="228px"
             src="/img/various/banner_wpp.png"
             p={0}
           />
-          <VStack
-            spacing="12px"
-            mb="20px"
-          >
+          <VStack spacing="12px" mb="20px">
             <Text fontSize="36px" color="#0A0A0A" lineHeight="36px" fontWeight={200}>
               Baixar o WhatsApp para Windows
             </Text>
@@ -143,21 +276,11 @@ export default function Messages() {
             bg="#1DAA61"
             _hover={{ bg: "#1DAA61" }}
           >
-            <Text
-              color="white"
-              fontWeight={500}
-              fontSize={"14px"}
-              line-height="16.0006px"
-            >
+            <Text color="white" fontWeight={500} fontSize="14px" lineHeight="16.0006px">
               Baixar
             </Text>
           </Button>
-          <HStack
-            bottom="40px"
-            position={"absolute"}
-            justify="center"
-            spacing="5px"
-          >
+          <HStack bottom="40px" position="absolute" justify="center" spacing="5px">
             <Text
               as="span"
               className="material-symbols-rounded"
@@ -166,11 +289,7 @@ export default function Messages() {
             >
               lock
             </Text>
-            <Text
-              fontSize={"14px"}
-              lineHeight={"20px"}
-              color="#00000099"
-            >
+            <Text fontSize="14px" lineHeight="20px" color="#00000099">
               Suas mensagens pessoais são protegidas com a criptografia de ponta a ponta.
             </Text>
           </HStack>
@@ -182,32 +301,20 @@ export default function Messages() {
   return (
     <Box
       p={selectedChat.isGroup ? "20px 57px 20px 30px" : "20px 57px 20px 62px"}
-      overflowY={"auto"}
+      overflowY="auto"
       h="calc(100vh - 64px - 76px)"
       display="flex"
       flexDirection="column"
       justifyContent="flex-end"
     >
-      {/**chat de conversa selecionado */}
-      <VStack
-        spacing="2px"
-        align="stretch"
-      >
+      <VStack spacing="2px" align="stretch">
         {selectedChat.messages.map((message, index) => {
           const prevMessage = selectedChat.messages[index - 1];
-          //verifica se existe alguma mensagem antes da mensagem atual, se não houver
-          //é o primeiro balão de mensagem
           const isFirstOfSender = !prevMessage ||
-            //ou se o remetente da mensagem anterior é diferente do remetente atual
             prevMessage.sender !== message.sender ||
-            //ou, se for um grupo, verifica se o nome do contato 
-            //anterior é diferente (ou seja, mudou o remetente dentro do grupo)
             (selectedChat.isGroup &&
               message.sender === "contact" &&
               prevMessage.senderName !== message.senderName);
-
-          //verifica se a mensagem atual é a última de um mesmo remetente
-          //se sim então significa que é a última mensagem
 
           return (
             <Flex
@@ -224,7 +331,7 @@ export default function Messages() {
                     boxSize="28px"
                     src={message.senderAvatar}
                     alt={message.senderName}
-                    borderRadius={"full"}
+                    borderRadius="full"
                     mb="20px"
                     cursor="pointer"
                   />
@@ -250,14 +357,12 @@ export default function Messages() {
                         width: 0,
                         height: 0,
                         borderStyle: "solid",
-                        // balão do usuário com flechinha
                         ...(message.sender === "user"
                           ? {
                             right: "-6px",
                             borderWidth: "0px 0 13px 13px",
                             borderColor: "transparent transparent transparent #D9FDD3",
                           }
-                          // balão do contato com flechinha
                           : {
                             left: "-6px",
                             borderWidth: "0px 13px 13px 0",
@@ -267,52 +372,7 @@ export default function Messages() {
                     }),
                   }}
                 >
-                  <HStack
-                    w="full"
-                    alignItems="flex-end"
-                  >
-                    <VStack align="flex-start" p="6px 7px 8px 9px" spacing="2px">
-                      {selectedChat.isGroup && message.sender === "contact" && (
-                        <Text
-                          fontWeight={500}
-                          fontSize="12.8px"
-                          color={getColorForSender(message.senderName || "")}
-                          _hover={{ textDecoration: "underline" }}
-                          cursor="pointer"
-                        >
-                          {message.senderName}
-                        </Text>
-                      )}
-                      <Text
-                        color="#0A0A0A"
-                        fontSize="14.2px"
-                        fontWeight={400}
-                        lineHeight="19px"
-                        whiteSpace="pre-wrap"
-                        wordBreak="break-word"
-                      >
-                        {message.text}
-                      </Text>
-                    </VStack>
-                    <HStack
-                      alignSelf="flex-end"
-                      flexShrink={0}
-                      p="0px 7px 2.5px 0px"
-                      spacing="3px"
-                    >
-                      <Text
-                        color="#00000099"
-                        fontSize="11px"
-                        lineHeight="15px"
-                        whiteSpace="nowrap"
-                      >
-                        {formatTime(message.timestamp)}
-                      </Text>
-                      {message.sender === "user" && (
-                        <DoubleCheck />
-                      )}
-                    </HStack>
-                  </HStack>
+                  <MessageContent message={message} />
                 </Flex>
                 <Box>
                   {isTextHovered === message.id && message.sender === "contact" && (

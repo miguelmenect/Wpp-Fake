@@ -1,5 +1,5 @@
 import { Box, Button, Divider, HStack, Text, VStack } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 interface MenuItem {
   icon: string;
@@ -17,6 +17,7 @@ interface DropdownOptProps {
   right?: string | number;
   isFilled?: boolean;
   onClose: () => void;
+  onItemClick?: (label: string) => void;
   linePosition?: number;
   menuOptions: MenuItem[];
 }
@@ -25,6 +26,7 @@ export default function DropdownOpt({
   isOpen,
   roundedType = false,
   onClose,
+  onItemClick,
   linePosition,
   menuOptions,
   w = "223px",
@@ -85,7 +87,12 @@ export default function DropdownOpt({
                 role="group"
                 _hover={{ bg: !afterDiv ? "#F6F5F4" : "#F9EBEF" }
                 }
-                onClick={onClose}
+                onClick={() => {
+                  if (onItemClick) {
+                    onItemClick(item.label);
+                  }
+                  onClose();
+                }}
               >
                 <HStack w="full" justify={"flex-start"}>
                   <Text

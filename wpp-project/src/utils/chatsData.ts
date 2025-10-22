@@ -5,6 +5,10 @@ export interface Message {
   timestamp: Date;
   senderName?: string;
   senderAvatar?: string;
+  media?: {
+    url: string;
+    type: 'image' | 'video';
+  };
 }
 
 export interface Chat {
