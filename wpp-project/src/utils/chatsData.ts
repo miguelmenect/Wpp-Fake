@@ -7,7 +7,7 @@ export interface Message {
   senderAvatar?: string;
   media?: {
     url: string;
-    type: 'image' | 'video';
+    type: 'image' | 'video' | "audio";
   };
 }
 

@@ -11,7 +11,7 @@ function App() {
     <ChakraProvider>
       <ChatProvider>
         <Box display="flex" h="100vh" w="100vw" overflow="hidden">
-          <Box w="64px" flexShrink={0} /> {/* Espaçador para a sidebar fixa */}
+          <Box w="64px" flexShrink={0} /> {/* espaçador para a sidebar fixa */}
           <SideBar />
           <ChatContainer />
           <ContactsChat />

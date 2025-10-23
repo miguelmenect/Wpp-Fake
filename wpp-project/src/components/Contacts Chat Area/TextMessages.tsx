@@ -4,6 +4,7 @@ import { useChat } from "../../context/ChatContext";
 import { DoubleCheck } from "../../utils/Icons";
 import ReactionBar from "./ReactionBar";
 import { AnimatePresence } from "framer-motion";
+import { AudioMessage } from "./AudioRecorder";
 
 export default function Messages() {
   const [isTextHovered, setIsTextHovered] = useState<string | null>(null);
@@ -139,6 +140,28 @@ export default function Messages() {
     const isContact = message.sender === "contact";
 
     if (hasMedia) {
+      // Condição para áudio
+      if (message.media.type === 'audio') {
+        return (
+          <Box p="3px">
+            {isGroup && isContact && (
+              <Text
+                fontWeight={500}
+                fontSize="12.8px"
+                color={getColorForSender(message.senderName || "")}
+                _hover={{ textDecoration: "underline" }}
+                cursor="pointer"
+                mb="4px"
+              >
+                {message.senderName}
+              </Text>
+            )}
+            <AudioMessage audioUrl={message.media.url} />
+          </Box>
+        );
+      }
+
+      // Resto do código para imagem/vídeo
       return (
         <Box position="relative" p="3px">
           {isGroup && isContact && (
@@ -207,6 +230,7 @@ export default function Messages() {
       );
     }
 
+    // Mensagens de texto
     return (
       <HStack w="full" alignItems="flex-end">
         <VStack align="flex-start" p="6px 7px 8px 9px" spacing="2px">
@@ -241,7 +265,6 @@ export default function Messages() {
       </HStack>
     );
   };
-
   if (!selectedChat) {
     return (
       <Box
@@ -325,7 +348,7 @@ export default function Messages() {
               mb={selectedChat.isGroup ? "12px" : "1px"}
               position="relative"
             >
-              <HStack spacing="5px">
+              <HStack spacing="5px" w="full" justify={message.sender === "contact" ? "flex-start" : "flex-end"}>
                 {selectedChat.isGroup && message.sender === "contact" && (
                   <Image
                     boxSize="28px"
@@ -345,6 +368,7 @@ export default function Messages() {
                   bg={message.sender === "user" ? "#D9FDD3" : "#FFF"}
                   borderRadius="7.5px"
                   minH="34px"
+                  w={message.media?.type === "audio" ? "336px" : "auto"}
                   boxShadow="0 1px 0.5px rgba(11, 20, 26, 0.13)"
                   position="relative"
                   maxW="528.97px"
