@@ -63,6 +63,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
               text: newMessage.text,
               timestamp: newMessage.timestamp,
               sender: newMessage.sender,
+              media: newMessage.media,
             },
           }
           : chat //se não retorna o chat sem nenhuma alteração
@@ -79,6 +80,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
             text: newMessage.text,
             timestamp: newMessage.timestamp,
             sender: newMessage.sender,
+            media: newMessage.media,
           },
         } : null
       );

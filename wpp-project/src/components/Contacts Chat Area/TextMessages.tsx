@@ -140,7 +140,7 @@ export default function Messages() {
     const isContact = message.sender === "contact";
 
     if (hasMedia) {
-      // Condição para áudio
+      // condição para áudio
       if (message.media.type === 'audio') {
         return (
           <Box p="3px">
@@ -230,7 +230,7 @@ export default function Messages() {
       );
     }
 
-    // Mensagens de texto
+    // mensagens de texto
     return (
       <HStack w="full" alignItems="flex-end">
         <VStack align="flex-start" p="6px 7px 8px 9px" spacing="2px">
@@ -343,8 +343,10 @@ export default function Messages() {
             <Flex
               key={message.id}
               justify={message.sender === "user" ? "flex-end" : "flex-start"}
+              //-------------------------------
               onMouseEnter={() => setIsTextHovered(message.id)}
               onMouseLeave={() => setIsTextHovered(null)}
+              //-------------------------------
               mb={selectedChat.isGroup ? "12px" : "1px"}
               position="relative"
             >

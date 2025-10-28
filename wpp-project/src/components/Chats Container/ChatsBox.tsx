@@ -182,27 +182,39 @@ export default function Chats({ showArchived }: ChatsProps) {
                       textAlign="start"
                     >
                       {lastMessage.media ? (
-                        <HStack
-                          spacing={"2px"}
-                        >
-                          <Text as="span"
+                        <HStack spacing={"2px"}>
+                          <Text
+                            as="span"
                             className="material-symbols-rounded"
                             fontSize="20px"
                             color="#00000099"
+                            sx={{
+                              fontVariationSettings: lastMessage.media.type === 'audio'
+                                ? "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24"
+                                : "'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24"
+                            }}
                           >
-                            {lastMessage.media ? "image" : "videocam"}
+                            {lastMessage.media.type === 'image'
+                              ? "image"
+                              : lastMessage.media.type === 'video'
+                                ? "videocam"
+                                : "mic"}
                           </Text>
                           <Text
                             color="#00000099"
                             fontWeight={400}
                             fontSize={"14px"}
                           >
-                            {lastMessage.media ? "Foto" : "Vídeo"}
+                            {lastMessage.media.type === 'image'
+                              ? "Foto"
+                              : lastMessage.media.type === 'video'
+                                ? "Vídeo"
+                                : lastMessage.media.duration || "Áudio"}
                           </Text>
                         </HStack>
-                      )
-                        : truncateMessage(lastMessage.text, 46)
-                      }
+                      ) : (
+                        truncateMessage(lastMessage.text, 46)
+                      )}
                     </Text>
                   </HStack>
                 </HStack>

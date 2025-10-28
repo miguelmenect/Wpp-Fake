@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Button, HStack, Image, Text, VStack, Slider, SliderTrack, SliderFilledTrack, SliderThumb } from '@chakra-ui/react';
+import { Box, Button, HStack, Image, Text, VStack, Slider, SliderTrack, SliderFilledTrack, SliderThumb, IconButton } from '@chakra-ui/react';
 
 // Hook para gravação de áudio
 export const useAudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [audioDuration, setAudioDuration] = useState<string>("0:00");
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -51,6 +52,10 @@ export const useAudioRecorder = () => {
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
+      // formata a duração quando para de gravar
+      const mins = Math.floor(recordingTime / 60);
+      const secs = recordingTime % 60;
+      setAudioDuration(`${mins}:${secs.toString().padStart(2, '0')}`);
     }
   };
 
@@ -60,6 +65,7 @@ export const useAudioRecorder = () => {
       setIsRecording(false);
       setAudioBlob(null);
       setRecordingTime(0);
+      setAudioDuration("0:00");
       if (timerRef.current) {
         clearInterval(timerRef.current);
       }
@@ -69,11 +75,13 @@ export const useAudioRecorder = () => {
   const resetRecording = () => {
     setAudioBlob(null);
     setRecordingTime(0);
+    setAudioDuration("0:00");
   };
 
   return {
     isRecording,
     audioBlob,
+    audioDuration,
     recordingTime,
     startRecording,
     stopRecording,
@@ -82,7 +90,7 @@ export const useAudioRecorder = () => {
   };
 };
 
-// Componente de visualização durante gravação
+// componente de visualização durante gravação
 export const AudioRecordingBar = ({
   recordingTime,
   onCancel,
@@ -170,7 +178,7 @@ export const AudioRecordingBar = ({
   );
 };
 
-// Componente de player de áudio nas mensagens
+// componente de player de áudio nas mensagens
 export const AudioMessage = ({
   audioUrl,
   duration
@@ -274,48 +282,97 @@ export const AudioMessage = ({
           </Text>
         </Box>
       </Box>
-      <Button
+      <IconButton
+        aria-label={isPlaying ? "Pause" : "Play"}
+        icon={
+          <Text
+            as="span"
+            className="material-symbols-rounded"
+            fontSize={isPlaying ? "33px" : "40px"}
+            color="#6F8171"
+            sx={{
+              '&': {
+                fontVariationSettings: `'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24`
+              }
+            }}
+          >
+            {isPlaying ? 'pause' : 'play_arrow'}
+          </Text>
+        }
         bg="transparent"
         _hover={{ bg: "transparent" }}
         borderRadius="full"
         minH="40px"
         minW="40px"
         onClick={togglePlayPause}
-        p={0}
-      >
-        <Text
-          as="span"
-          className="material-symbols-rounded"
-          fontSize="40px"
-          color="#6F8171"
-          sx={{
-            '&': {
-              fontVariationSettings: `'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24`
-            }
-          }}
-        >
-          {isPlaying ? 'pause' : 'play_arrow'}
-        </Text>
-      </Button>
+      />
 
-      <VStack flex="1" spacing="8px" align="stretch" w="200px" h="full" justify="flex-end">
+      <VStack
+        flex="1"
+        w="full"
+        minW="200px"
+        h="full"
+        align="stretch"
+        position="relative"
+        justify="center"
+      >
+        {/* slider centralizado */}
         <Slider
           value={currentTime}
           min={0}
-          max={audioDuration || 100}
+          max={audioDuration}
           onChange={handleSliderChange}
           focusThumbOnChange={false}
+          w="100%"
         >
-          <SliderTrack bg="#D9D9D9" h="4px" borderRadius="full">
-            <SliderFilledTrack bg="#6F8171" />
+          <SliderTrack
+            bg="transparent"
+            h="32px"
+            display="flex"
+            alignItems="center"
+            position="relative"
+          >
+            <HStack
+              spacing="1px"
+              h="32px"
+              w="full"
+              justify="space-between"
+              pointerEvents="none"
+            >
+              {Array.from({ length: 40 }).map((_, i) => {
+                const progress = (currentTime / (audioDuration || 1)) * 100;
+                const barProgress = (i / 40) * 100;
+                const isFilled = barProgress <= progress;
+                const heights = [8, 12, 16, 20, 24, 20, 16, 12, 8, 12, 18, 22, 18, 14, 10, 14, 20, 24, 20, 16, 12, 16, 22, 18, 14, 10, 14, 18, 22, 18, 14, 12, 16, 20, 16, 12, 8, 12, 16, 12];
+
+                return (
+                  <Box
+                    key={i}
+                    flex="1"
+                    maxW="2px"
+                    h={`${heights[i]}px`}
+                    bg={isFilled ? "#6F8171" : "#D9D9D9"}
+                    borderRadius="full"
+                    transition="background 0.1s"
+                  />
+                );
+              })}
+            </HStack>
+            <SliderFilledTrack bg="transparent" />
           </SliderTrack>
+          {/* bolinha azul */}
           <SliderThumb boxSize="12px" bg="#4FC3F7" />
         </Slider>
-        <HStack w="full">
-          <Text fontSize="11px" color="#8696a0" alignSelf="flex-start">
-            {formatTime(audioDuration - currentTime)}
-          </Text>
-        </HStack>
+        {/* horário fixado abaixo do audio */}
+        <Text
+          fontSize="11px"
+          color="#8696a0"
+          position="absolute"
+          bottom="0"
+          left="0"
+        >
+          {formatTime(audioDuration - currentTime)}
+        </Text>
       </VStack>
     </HStack>
   );

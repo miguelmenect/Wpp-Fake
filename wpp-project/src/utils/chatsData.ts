@@ -8,6 +8,7 @@ export interface Message {
   media?: {
     url: string;
     type: 'image' | 'video' | "audio";
+    duration?: string;
   };
 }
 
@@ -21,6 +22,11 @@ export interface Chat {
     text: string;
     timestamp: Date;
     sender: "user" | "contact";
+    media?: {
+      url: string;
+      type: 'image' | 'video' | "audio";
+      duration?: string;
+    };
   };
 }
 

@@ -64,7 +64,8 @@ export default function ContactsChat() {
       timestamp: new Date(),
       media: {
         url: selectedMedia.preview,
-        type: selectedMedia.type
+        type: selectedMedia.type,
+        duration: audioDuration
       }
     };
 
@@ -117,6 +118,7 @@ export default function ContactsChat() {
   const {
     isRecording,
     audioBlob,
+    audioDuration,
     recordingTime,
     startRecording,
     stopRecording,
@@ -134,7 +136,8 @@ export default function ContactsChat() {
         timestamp: new Date(),
         media: {
           url: audioUrl,
-          type: 'audio' as const
+          type: 'audio' as const,
+          duration: audioDuration
         }
       };
       updateChatMessages(selectedChat.id, newMessage);
